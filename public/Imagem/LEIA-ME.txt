@@ -1,0 +1,12 @@
+Coloque aqui as fotos reais dos produtos, seguindo exatamente os caminhos
+usados em src/data/products.js:
+
+  public/Imagem/Branca/1.png   -> Blusa Moletom - Branca
+  public/Imagem/Preta/5.png    -> Blusa Moletom - Preta
+  public/Imagem/Cinza/9.png    -> Blusa Moletom - Cinza
+
+O Vite serve tudo que está em /public na raiz do site, então o caminho
+"/Imagem/Branca/1.png" no código busca exatamente este arquivo aqui.
+
+Se uma imagem não for encontrada, o site mostra automaticamente
+"placeholder.svg" no lugar dela.
