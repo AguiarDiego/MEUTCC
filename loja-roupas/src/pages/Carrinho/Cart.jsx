@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { staticProducts, formatPrice, parsePrice } from '../../data/products.js'
-import { useCart } from '../context/CartContext';
-import './Carrinho/Cart.css';
+import { useCart } from '../../context/CartContext';
+import '../Carrinho/Cart.css';
 
 export default function Cart() {
   const { items, removeItem, setQty } = useCart();

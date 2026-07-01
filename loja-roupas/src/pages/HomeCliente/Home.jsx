@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { staticProducts } from '../data/products.js';
-import { useCart } from '../context/CartContext';
+import { staticProducts } from '../../data/products.js';
+import { useCart } from '../../context/CartContext';
 
 export default function Home() {
   const [justAdded, setJustAdded] = useState('');
