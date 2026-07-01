@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { staticProducts } from '../data/products';
+import { staticProducts } from '../data/products.js';
 import { useCart } from '../context/CartContext';
 
 export default function Home() {
