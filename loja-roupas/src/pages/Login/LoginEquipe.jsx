@@ -1,15 +1,22 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-export default function Login() {
-  const [showPassword, setShowPassword] = useState(false);
+export default function LoginEquipe() {
+  const navigate = useNavigate(); 
+    function handleSubmit(e) {
+    e.preventDefault();
+    navigate('/contaequipe');
+  }
+  
+const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="container my-5">
 
       <h2 className="text-center mb-4">Login - Equipe</h2>
 
-      <form className="mx-auto" style={{ maxWidth: '400px' }}>
+      <form className="mx-auto" style={{ maxWidth: '400px' }} onSubmit={handleSubmit}>
         <div className="mb-3">
           <label htmlFor="email" className="form-label">
             E-mail:

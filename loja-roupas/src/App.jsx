@@ -7,6 +7,7 @@ import Cart from './pages/Carrinho/Cart';
 import Contact from './pages/Contato/Contact';
 import Login from './pages/Login/Login';
 import LoginEquipe from './pages/Login/LoginEquipe'
+import ContaEquipe from './pages/Conta/ContaEquipe'
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/contato" element={<Contact />} />
         <Route path="/login" element={<Login />} />
         <Route path="/loginequipe" element={<LoginEquipe />} />
+        <Route path="/contaequipe" element={<ContaEquipe />} />
       </Routes>
       <Footer />
     </CartProvider>
