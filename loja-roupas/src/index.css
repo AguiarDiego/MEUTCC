@@ -36,3 +36,21 @@ a {
   font-weight: 700;
   letter-spacing: 0.02em;
 }
+
+.btn-buy {
+  background-color: var(--badge-color);
+  color: white;
+  border: none;
+}
+
+.btn-buy:hover {
+  opacity: 0.9;
+}
+
+.link-vinho {
+  color: var(--badge-color);
+}
+
+.link-vinho:hover {
+  opacity: 0.8;
+}

@@ -32,10 +32,10 @@ export default function Header() {
           <div
             className="user-actions d-flex align-items-center gap-3 position-absolute top-50 end-0 translate-middle-y"
           >
-            <a href="#" className="d-flex align-items-center gap-1 text-white text-decoration-none">
+            <Link to="/login" className="d-flex align-items-center gap-1 text-white text-decoration-none">
               <i className="bi bi-person"></i>
               <span className="d-none d-md-inline">Login</span>
-            </a>
+            </Link>
             <Link to="/carrinho" className="d-flex align-items-center gap-1 text-white text-decoration-none">
               <i className="bi bi-bag"></i>
               <span className="d-none d-md-inline">Carrinho</span>
