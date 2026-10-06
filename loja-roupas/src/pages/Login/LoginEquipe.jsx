@@ -7,7 +7,7 @@ export default function Login() {
   return (
     <div className="container my-5">
 
-      <h2 className="text-center mb-4">Iniciar sessão</h2>
+      <h2 className="text-center mb-4">Login - Equipe</h2>
 
       <form className="mx-auto" style={{ maxWidth: '400px' }}>
         <div className="mb-3">
@@ -18,7 +18,7 @@ export default function Login() {
             type="email"
             className="form-control"
             id="email"
-            placeholder="ex.: seuemail@email.com"
+            placeholder="ex.: filipedepaula@guetosl.com"
           />
         </div>
 
@@ -49,20 +49,6 @@ export default function Login() {
           Iniciar sessão
         </button>
 
-        <div className="text-center small">
-          <p className="mb-2">
-            Não possui uma conta ainda?{' '}
-            <Link to="/criar-conta" className="fw-bold link-vinho">
-              Criar uma conta
-            </Link>
-          </p>
-          <p>
-            Você faz parte da nossa equipe?{' '}
-            <Link to="/loginequipe" className="fw-bold link-vinho">
-              Entre aqui!
-            </Link>
-          </p>
-        </div>
       </form>
     </div>
   );

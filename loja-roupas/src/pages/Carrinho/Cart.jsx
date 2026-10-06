@@ -25,7 +25,7 @@ export default function Cart() {
       <main className="cart cart--empty">
         <h1>Carrinho</h1>
         <p>Seu carrinho está vazio, por enquanto.</p>
-        <Link to="/" className="cart__cta">
+        <Link to="/" className="fw-bold link-vinho">
           Ver coleção
         </Link>
       </main>

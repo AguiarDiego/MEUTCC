@@ -37,12 +37,12 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="colecao" className="container my-5">
+      <section id="colecao" className="container my-3">
         <h2 className="section-title">DISPONÍVEL AGORA</h2>
 
         <div className="row">
           {staticProducts.map((product) => (
-            <div className="col-md-4" key={product.id}>
+            <div className="col-md-4 my-4" key={product.id}>
               <div className="card border-0 shadow-sm mb-4 h-100 product-card">
                 <img
                   src={product.image}
