@@ -14,44 +14,67 @@ export default function Header() {
         CUPOM DE 10% NA PRIMEIRA COMPRA: <strong>GUETOSL10</strong>
       </div>
 
-      <nav className="navbar navbar-expand-lg navbar-dark py-3" style={{ backgroundColor: '#000' }}>
-        <div className="container position-relative d-flex justify-content-center">
-          <Link to="/" className="navbar-brand d-flex align-items-center">
-            <img
-              src="/Imagem/logo.png"
-              alt="GuetoSL"
-              style={{
-                height: '48px',
-                backgroundColor: '#fff',
-                borderRadius: '6px',
-                padding: '4px 10px',
-              }}
-            />
-          </Link>
+      <nav
+  className="navbar navbar-expand-lg navbar-dark"
+  style={{
+    backgroundColor: '#000',
+    height: '70px',
+  }}
+>
+  <div className="container-fluid position-relative d-flex justify-content-center px-4">
+    
+    <Link
+      to="/"
+      className="navbar-brand position-absolute start-50"
+      style={{
+        top: '50%',
+        transform: 'translate(-50%, -50%)',
+        margin: 0,
+      }}
+    >
+      <img
+        src="/Imagem/logo.png"
+        alt="GuetoSL"
+        style={{
+          height: '177px',
+          width: 'auto',
+          objectFit: 'contain',
+        }}
+      />
+    </Link>
 
-          <div
-            className="user-actions d-flex align-items-center gap-3 position-absolute top-50 end-0 translate-middle-y"
-          >
-            <Link to="/login" className="d-flex align-items-center gap-1 text-white text-decoration-none">
-              <i className="bi bi-person"></i>
-              <span className="d-none d-md-inline">Login</span>
-            </Link>
-            <Link to="/carrinho" className="d-flex align-items-center gap-1 text-white text-decoration-none">
-              <i className="bi bi-bag"></i>
-              <span className="d-none d-md-inline">Carrinho</span>
-              <span
-                className="badge rounded-pill ms-1"
-                style={{ backgroundColor: 'var(--badge-color)' }}
-              >
-                {totalCount}
-              </span>
-            </Link>
-          </div>
-        </div>
-      </nav>
+    <div
+      className="user-actions d-flex align-items-center gap-3 position-absolute top-50 end-0 translate-middle-y"
+    >
+      <Link
+        to="/login"
+        className="d-flex align-items-center gap-1 text-white text-decoration-none"
+      >
+        <i className="bi bi-person"></i>
+        <span className="d-none d-md-inline">Login</span>
+      </Link>
+
+      <Link
+        to="/carrinho"
+        className="d-flex align-items-center gap-1 text-white text-decoration-none"
+      >
+        <i className="bi bi-bag"></i>
+        <span className="d-none d-md-inline">Carrinho</span>
+
+        <span
+          className="badge rounded-pill ms-1"
+          style={{ backgroundColor: 'var(--badge-color)' }}
+        >
+          {totalCount}
+        </span>
+      </Link>
+    </div>
+
+  </div>
+</nav>
 
       <nav className="navbar navbar-expand-lg navbar-dark py-2" style={{ backgroundColor: '#000', borderTop: '1px solid #333' }}>
-        <div className="container">
+        <div className="container-fluid">
           <button
             className="navbar-toggler"
             type="button"
