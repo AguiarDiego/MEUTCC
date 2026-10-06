@@ -21,7 +21,7 @@ export default function Header() {
     height: '70px',
   }}
 >
-  <div className="container-fluid position-relative d-flex justify-content-center px-4">
+  <div className="container position-relative d-flex justify-content-center">
     
     <Link
       to="/"
@@ -74,7 +74,7 @@ export default function Header() {
 </nav>
 
       <nav className="navbar navbar-expand-lg navbar-dark py-2" style={{ backgroundColor: '#000', borderTop: '1px solid #333' }}>
-        <div className="container-fluid">
+        <div className="container">
           <button
             className="navbar-toggler"
             type="button"
