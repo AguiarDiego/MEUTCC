@@ -38,8 +38,7 @@ export default function Home() {
       </section>
 
       <section id="colecao" className="container my-3">
-        <h2 className="section-title">DISPONÍVEL AGORA</h2>
-
+        <h2 className="section-title my-5">DISPONÍVEL AGORA</h2>
         <div className="row">
           {staticProducts.map((product) => (
             <div className="col-md-4 my-4" key={product.id}>
@@ -58,9 +57,6 @@ export default function Home() {
                   <p className="fw-bold mb-0">R${product.price}</p>
                   <p className="mb-0" style={{ color: 'var(--accent-color)' }}>
                     R${product.pricePix} com Pix
-                  </p>
-                  <p className="text-muted small">
-                    4x de R${product.installment} sem juros
                   </p>
                   <button
                     type="button"
