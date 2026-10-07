@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-export default function Contact() {
+export default function Contato() {
   const [form, setForm] = useState({ nome: '', email: '', telefone: '', mensagem: '' });
   const [sent, setSent] = useState(false);
 
@@ -19,7 +19,6 @@ export default function Contact() {
 
   return (
     <div className="container my-5">
-      {/* Breadcrumb */}
       <p className="text-center text-muted mb-2">
         <Link to="/" className="text-muted">
           Início

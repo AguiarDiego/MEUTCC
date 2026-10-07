@@ -1,24 +1,38 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import PainelPedidos from '../../components/PainelPedidos';
+import { Link, useNavigate } from 'react-router-dom';
 import { staticProducts } from '../../data/products.js';
+
+// Dados fake do membro da equipe. Na quinta isso vem da API.
+const equipe = {
+  nome: 'Nome do Responsável',
+  email: 'equipe@guetosl.com',
+  documento: '000.000.000-00',
+  telefone: '+55 11 90000-0000',
+  endereco: {
+    rua: 'R. Exemplo, 123',
+    bairro: 'Bairro, Cidade, 00000-000',
+    estado: 'São Paulo',
+    pais: 'Brasil',
+  },
+};
 
 export default function ContaEquipe() {
   const [produtos, setProdutos] = useState(staticProducts);
+  const navigate = useNavigate();
+
+  function sair() {
+    navigate('/loginequipe');
+  }
 
   function excluirProduto(id) {
-    // Por enquanto só remove da tela. Quando a API estiver pronta,
-    // isso vira uma chamada DELETE para o backend.
     setProdutos((prev) => prev.filter((produto) => produto.id !== id));
   }
 
   function editarProduto(id) {
-    // Placeholder - aqui no futuro abre um formulário/modal de edição
     alert(`Editar produto #${id} - funcionalidade a implementar`);
   }
 
   function adicionarItem() {
-    // Placeholder - aqui no futuro abre um formulário de novo produto
     alert('Adicionar novo item - funcionalidade a implementar');
   }
 
@@ -35,13 +49,71 @@ export default function ContaEquipe() {
       <h2 className="text-center mb-5">Minha conta - Equipe</h2>
 
       <div className="row">
-        {/* Coluna esquerda: painel de pedidos */}
-        <div className="col-md-6 border-end">
-          <PainelPedidos />
+        {/* Coluna esquerda: atalho para a página de pedidos + dados do responsável */}
+        <div className="col-md-4 border-end mb-5 mb-md-0">
+          <h4 className="mb-4">Pedidos</h4>
+          <p className="text-muted small">
+            Acompanhe pagamentos, prepare pedidos e confirme os envios.
+          </p>
+
+          <Link
+            to="/gerenciarpedidos"
+            className="btn-buy d-inline-block text-center text-decoration-none mb-5"
+            style={{ padding: '10px 24px' }}
+          >
+            <i className="bi bi-box-seam me-2"></i>
+            Gerenciar pedidos
+          </Link>
+
+          <div className="d-flex justify-content-between align-items-start mb-2">
+            <h6 className="fw-bold mb-0">Dados Pessoais</h6>
+            <button
+              type="button"
+              className="btn btn-link p-0 small"
+              style={{ color: 'var(--primary-color)' }}
+              onClick={() => alert('Editar dados pessoais - funcionalidade a implementar')}
+            >
+              Editar
+            </button>
+          </div>
+          <p className="mb-4 small">
+            <strong>{equipe.nome}</strong>
+            <br />
+            {equipe.email}
+            <br />
+            <strong>CPF / CNPJ:</strong> {equipe.documento}
+            <br />
+            <strong>Telefone:</strong> {equipe.telefone}
+          </p>
+
+          <div className="d-flex justify-content-between align-items-start mb-2">
+            <h6 className="fw-bold mb-0">Meus endereços</h6>
+            <button
+              type="button"
+              className="btn btn-link p-0 small"
+              style={{ color: 'var(--primary-color)' }}
+              onClick={() => alert('Editar endereço - funcionalidade a implementar')}
+            >
+              Editar
+            </button>
+          </div>
+          <p className="mb-4 small">
+            {equipe.endereco.rua}
+            <br />
+            {equipe.endereco.bairro}
+            <br />
+            {equipe.endereco.estado}
+            <br />
+            {equipe.endereco.pais}
+          </p>
+
+          <button type="button" onClick={sair} className="btn btn-dark px-4">
+            Sair
+          </button>
         </div>
 
         {/* Coluna direita: editar itens da loja */}
-        <div className="col-md-6 ps-md-4">
+        <div className="col-md-8 ps-md-4">
           <h4 className="mb-4">Editar itens da loja</h4>
 
           <div className="row g-3">

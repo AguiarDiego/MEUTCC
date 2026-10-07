@@ -4,8 +4,8 @@ export const orders = [
   {
     id: 1001,
     cliente: {
-      nome: 'Amanda Aguiar',
-      contato: 'amanda.aguiar@email.com',
+      nome: 'Arthur da Silva Augusto',
+      contato: 'arthurdasilva@gmail.com',
     },
     itens: [
       { nome: 'Blusa Moletom - Branca', quantidade: 2 },
@@ -18,8 +18,8 @@ export const orders = [
   {
     id: 1002,
     cliente: {
-      nome: 'Carlos Eduardo',
-      contato: '11 98765-4321',
+      nome: 'Igor Brasil Domingues',
+      contato: 'BrasilDomingues@gmail.com',
     },
     itens: [{ nome: 'Blusa Moletom - Cinza', quantidade: 1 }],
     valorTotal: 119.90,
@@ -29,8 +29,8 @@ export const orders = [
   {
     id: 1003,
     cliente: {
-      nome: 'Julia Ferreira',
-      contato: 'julia.f@email.com',
+      nome: 'Enzo Gabriel',
+      contato: 'egferreiradasilva@gmail.com',
     },
     itens: [
       { nome: 'Blusa Moletom - Branca', quantidade: 1 },

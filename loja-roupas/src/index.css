@@ -2,7 +2,7 @@
 
 :root {
   --primary-color: #1a1a1a;
-  --secondary-color: #f8f9fa;
+  --secondary-color: #e1e2e4;
   --accent-color: #000000;
   --badge-color: #6d000b;
 }
@@ -28,6 +28,7 @@ a {
 
 .product-card {
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+  background-color: #eeeeee;
 }
 
 .product-card:hover {
