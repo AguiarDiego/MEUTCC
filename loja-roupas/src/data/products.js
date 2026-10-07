@@ -47,7 +47,7 @@ export const staticProducts = [
   {
     id: 7,
     name: 'Bermuda Moletom - Branca',
-    image: '/Imagem/Branca/1.png',
+    image: '/Imagem/Branca/BermudaBranca.jpg',
     price: '119,90',
     pricePix: '113,90',
     installment: '30,00',
@@ -55,7 +55,7 @@ export const staticProducts = [
   {
     id: 8,
     name: 'Bermuda Moletom - Preta',
-    image: '/Imagem/Preta/5.png',
+    image: '/Imagem/Preta/BermudaPreta.jpg',
     price: '119,90',
     pricePix: '113,90',
     installment: '30,00',
