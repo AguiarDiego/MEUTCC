@@ -97,7 +97,7 @@ export default function Header() {
               </li>
               <li className="nav-item">
                 <Link className="nav-link fw-medium" to="/carrinho">
-                  CARRINHO
+                  SOBRE NÓS
                 </Link>
               </li>
             </ul>

@@ -1,75 +1,220 @@
-import { useState } from 'react';
+
+import { useEffect, useState } from 'react';
 import { staticProducts } from '../../data/products.js';
+import { listarProdutos } from '../../service/produtoService.js';
 import { useCart } from '../../context/CartContext';
 
 export default function Home() {
+
+  // Guarda os produtos que serão recebidos do backend.
+  const [products, setProducts] = useState([]);
+
+  // Guarda o nome do produto que acabou de ser adicionado ao carrinho.
   const [justAdded, setJustAdded] = useState('');
+
+  // Acessa a função responsável por adicionar produtos ao carrinho.
   const { addItem } = useCart();
 
+  /*
+   * Executa quando a página Home é carregada.
+   *
+   * Aqui fazemos uma requisição para o backend:
+   * React → produtoService.js → Spring Boot → SQL Server
+   */
+  useEffect(() => {
+
+    async function carregarProdutos() {
+      try {
+
+        // Busca os produtos cadastrados no banco.
+        const produtosDoBanco = await listarProdutos();
+
+        /*
+         * O backend utiliza nomes diferentes dos usados
+         * atualmente pelo frontend.
+         *
+         * Exemplo:
+         * backend: nome
+         * frontend: name
+         *
+         * Por isso fazemos essa adaptação aqui.
+         */
+        const produtosFormatados = produtosDoBanco.map((produto) => {
+
+          // Procura no products.js informações visuais
+          // relacionadas ao mesmo produto.
+          const produtoVisual = staticProducts.find(
+            (produtoStatico) => produtoStatico.id === produto.id
+          );
+
+          return {
+            // Dados vindos do banco.
+            id: produto.id,
+            name: produto.nome,
+            price: produto.preco,
+
+            // Dados que ainda estão no frontend.
+            image: produtoVisual?.image || '/Imagem/placeholder.svg',
+            pricePix: produtoVisual?.pricePix || produto.preco,
+
+            // Mantemos também os outros dados do banco.
+            descricao: produto.descricao,
+            tamanho: produto.tamanho,
+            cor: produto.cor,
+            estoque: produto.estoque,
+            categoria: produto.categoria,
+          };
+        });
+
+        // Guarda os produtos formatados no estado.
+        setProducts(produtosFormatados);
+
+      } catch (erro) {
+
+        // Mostra o erro no console caso a comunicação com o backend falhe.
+        console.error('Erro ao carregar produtos:', erro);
+      }
+    }
+
+    // Executa a função para buscar os produtos.
+    carregarProdutos();
+
+  }, []);
+
+  /*
+   * Adiciona o produto ao carrinho e mostra
+   * a mensagem temporária na parte inferior da tela.
+   */
   function handleAdd(product) {
     addItem(product);
+
     setJustAdded(product.name);
+
     window.clearTimeout(handleAdd._t);
-    handleAdd._t = window.setTimeout(() => setJustAdded(''), 2200);
+
+    handleAdd._t = window.setTimeout(
+      () => setJustAdded(''),
+      2200
+    );
   }
 
   return (
     <main>
-      <section className="py-5" style={{ backgroundColor: 'var(--secondary-color)' }}>
+
+      <section
+        className="py-5"
+        style={{ backgroundColor: 'var(--secondary-color)' }}
+      >
+
         <div className="container">
+
           <div className="row text-center">
+
             <div className="col-md-4 mb-4 mb-md-0">
               <i className="bi bi-truck fs-3 mb-2 d-block"></i>
+
               <h5>FRETE GRÁTIS</h5>
-              <p className="text-muted mb-0">Para compras acima de R$238,90</p>
+
+              <p className="text-muted mb-0">
+                Para compras acima de R$238,90
+              </p>
             </div>
+
             <div className="col-md-4 mb-4 mb-md-0">
               <i className="bi bi-percent fs-3 mb-2 d-block"></i>
+
               <h5>10% OFF NA PRIMEIRA COMPRA</h5>
-              <p className="text-muted mb-0">Use o cupom "GUETOSL10"</p>
+
+              <p className="text-muted mb-0">
+                Use o cupom "GUETOSL10"
+              </p>
             </div>
+
             <div className="col-md-4">
               <i className="bi bi-credit-card fs-3 mb-2 d-block"></i>
+
               <h5>ATÉ 4X SEM JUROS</h5>
-              <p className="text-muted mb-0">Em todo site</p>
+
+              <p className="text-muted mb-0">
+                Em todo site
+              </p>
             </div>
+
           </div>
+
         </div>
+
       </section>
 
       <section id="colecao" className="container my-3">
-        <h2 className="section-title my-5">DISPONÍVEL AGORA</h2>
+
+        <h2 className="section-title my-5">
+          DISPONÍVEL AGORA
+        </h2>
+
         <div className="row">
-          {staticProducts.map((product) => (
-            <div className="col-md-4 my-4" key={product.id}>
+
+          {products.map((product) => (
+
+            <div
+              className="col-md-4 my-4"
+              key={product.id}
+            >
+
               <div className="card border-0 shadow-sm mb-4 h-100 product-card">
+
                 <img
                   src={product.image}
                   className="card-img-top"
                   alt={product.name}
-                  style={{ height: '340px', objectFit: 'cover' }}
+                  style={{
+                    height: '340px',
+                    objectFit: 'cover'
+                  }}
                   onError={(e) => {
-                    e.currentTarget.src = '/Imagem/placeholder.svg';
+                    e.currentTarget.src =
+                      '/Imagem/placeholder.svg';
                   }}
                 />
+
                 <div className="card-body text-center d-flex flex-column">
-                  <h5 className="card-title">{product.name}</h5>
-                  <p className="fw-bold mb-0">R${product.price}</p>
-                  <p className="mb-0" style={{ color: 'var(--accent-color)' }}>
+
+                  <h5 className="card-title">
+                    {product.name}
+                  </h5>
+
+                  <p className="fw-bold mb-0">
+                    R${product.price}
+                  </p>
+
+                  <p
+                    className="mb-0"
+                    style={{
+                      color: 'var(--accent-color)'
+                    }}
+                  >
                     R${product.pricePix} com Pix
                   </p>
+
                   <button
                     type="button"
                     className="btn btn-dark mt-auto w-100"
                     onClick={() => handleAdd(product)}
                   >
-                    Comprar <i className="bi bi-cart-plus"></i>
+                    Comprar
+                    <i className="bi bi-cart-plus"></i>
                   </button>
+
                 </div>
+
               </div>
+
             </div>
+
           ))}
+
         </div>
+
       </section>
 
       <div
@@ -84,8 +229,13 @@ export default function Home() {
         }}
         role="status"
       >
-        {justAdded && `${justAdded} adicionado ao carrinho`}
+
+        {justAdded &&
+          `${justAdded} adicionado ao carrinho`
+        }
+
       </div>
+
     </main>
   );
 }
