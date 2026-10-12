@@ -39,35 +39,44 @@ export default function Home() {
          *
          * Por isso fazemos essa adaptação aqui.
          */
-        const produtosFormatados = produtosDoBanco.map((produto) => {
+        // Transforma os dados do backend no formato usado pelo React.
+const produtosFormatados = produtosDoBanco.map((produto) => {
 
-          // Procura no products.js informações visuais
-          // relacionadas ao mesmo produto.
-          const produtoVisual = staticProducts.find(
-            (produtoStatico) => produtoStatico.id === produto.id
-          );
+  // Busca informações visuais antigas, caso existam.
+  const produtoVisual = staticProducts.find(
+    (produtoStatico) => produtoStatico.id === produto.id
+  );
 
-          return {
-            // Dados vindos do banco.
-            id: produto.id,
-            name: produto.nome,
-            price: produto.preco,
+  // Verifica se o backend retornou uma imagem cadastrada.
+  const nomeImagem = produto.imagem?.caminho;
 
-            // Dados que ainda estão no frontend.
-            image: produtoVisual?.image || '/Imagem/placeholder.svg',
-            pricePix: produtoVisual?.pricePix || produto.preco,
+  // Monta o endereço da imagem disponibilizada pelo Spring Boot.
+  const imagemBackend = nomeImagem
+    ? `http://localhost:8080/imagens/${nomeImagem}`
+    : null;
 
-            // Mantemos também os outros dados do banco.
-            descricao: produto.descricao,
-            tamanho: produto.tamanho,
-            cor: produto.cor,
-            estoque: produto.estoque,
-            categoria: produto.categoria,
-          };
-        });
+  return {
+    id: produto.id,
+    name: produto.nome,
+    price: produto.preco,
 
-        // Guarda os produtos formatados no estado.
-        setProducts(produtosFormatados);
+    // Prioriza a imagem cadastrada no backend.
+    // Se não houver, usa a imagem antiga ou o placeholder.
+    image:
+      imagemBackend ||
+      produtoVisual?.image ||
+      '/Imagem/placeholder.svg',
+
+    pricePix: produtoVisual?.pricePix || produto.preco,
+    descricao: produto.descricao,
+    tamanho: produto.tamanho,
+    cor: produto.cor,
+    estoque: produto.estoque,
+    categoria: produto.categoria,
+  };
+});
+
+  setProducts(produtosFormatados);
 
       } catch (erro) {
 

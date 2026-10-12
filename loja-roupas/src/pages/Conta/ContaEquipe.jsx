@@ -1,6 +1,12 @@
-import { useState } from 'react';
+
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { staticProducts } from '../../data/products.js';
+import {
+    listarProdutos,
+    cadastrarProduto,
+    excluirProduto as excluirProdutoAPI,
+} from '../../service/produtoService.js';
+
 
 // Dados fake do membro da equipe. Na quinta isso vem da API.
 const equipe = {
@@ -17,23 +23,87 @@ const equipe = {
 };
 
 export default function ContaEquipe() {
-  const [produtos, setProdutos] = useState(staticProducts);
-  const navigate = useNavigate();
+  
+const [produtos, setProdutos] = useState([]);
+const [carregando, setCarregando] = useState(true);
+const [erro, setErro] = useState('');
+const navigate = useNavigate();
+
+// Controla se o formulário de cadastro está visível.
+const [mostrarFormulario, setMostrarFormulario] = useState(false);
+
+// Busca os produtos reais quando a tela é aberta.
+useEffect(() => {
+    async function carregarProdutos() {
+        try {
+            const dados = await listarProdutos();
+
+            // Adapta os campos do backend para os nomes usados na tela.
+            const produtosFormatados = dados.map((produto) => {
+    // Obtém o nome do arquivo de imagem enviado pelo backend.
+    const nomeImagem = produto.imagem?.caminho;
+
+    // Monta a URL para exibir a imagem salva pelo Spring Boot.
+    const imagemBackend = nomeImagem
+        ? `http://localhost:8080/imagens/${nomeImagem}`
+        : '/Imagem/placeholder.svg';
+
+    return {
+        ...produto,
+        name: produto.nome,
+        price: Number(produto.preco),
+        image: imagemBackend,
+    };
+});
+
+            setProdutos(produtosFormatados);
+        } catch (erro) {
+            console.error('Erro ao carregar produtos:', erro);
+            setErro('Não foi possível carregar os produtos.');
+        } finally {
+            setCarregando(false);
+        }
+    }
+
+    carregarProdutos();
+}, []);
 
   function sair() {
     navigate('/loginequipe');
   }
 
-  function excluirProduto(id) {
-    setProdutos((prev) => prev.filter((produto) => produto.id !== id));
-  }
+  async function excluirProduto(id) {
+// Pede confirmação antes de excluir.
+const confirmar = window.confirm(
+'Tem certeza que deseja excluir este produto?'
+);
+
+if (!confirmar) return;
+
+try {
+    // Envia o pedido de exclusão para o backend.
+    await excluirProdutoAPI(id);
+
+    // Atualiza a tela somente se a API confirmar sucesso.
+    setProdutos((prev) =>
+        prev.filter((produto) => produto.id !== id)
+    );
+
+    alert('Produto excluído com sucesso!');
+} catch (erro) {
+    console.error('Erro ao excluir produto:', erro);
+    alert('Não foi possível excluir o produto.');
+}
+
+}
 
   function editarProduto(id) {
     alert(`Editar produto #${id} - funcionalidade a implementar`);
   }
 
+  // Abre o formulário de cadastro de produtos.
   function adicionarItem() {
-    alert('Adicionar novo item - funcionalidade a implementar');
+    setMostrarFormulario(true);
   }
 
   return (
@@ -116,8 +186,15 @@ export default function ContaEquipe() {
         <div className="col-md-8 ps-md-4">
           <h4 className="mb-4">Editar itens da loja</h4>
 
-          <div className="row g-3">
-            {produtos.map((produto) => (
+        {/* Mostra enquanto a API busca os produtos */}
+        {carregando && <p>Carregando produtos...</p>}
+
+        {/* Mostra se acontecer algum erro */}
+        {erro && <p className="text-danger">{erro}</p>}
+
+        {/* Mostra os produtos carregados */}
+        <div className="row g-3">
+        {produtos.map((produto) => (
               <div className="col-6 col-lg-4" key={produto.id}>
                 <div className="text-center">
                   <img
@@ -170,6 +247,138 @@ export default function ContaEquipe() {
               Adicionar
             </span>
           </div>
+
+           {/* Formulário de cadastro de produto */}
+          {mostrarFormulario && (
+           <div className="card p-4 mt-4">
+         <h5 className="mb-3">Cadastrar novo produto</h5>
+
+                <form onSubmit={salvarProduto}>
+            {/* Nome que aparecerá na loja */}
+                    <div className="mb-3">
+            <label className="form-label">Nome do produto</label>
+              <input
+                  className="form-control"
+                  type="text"
+                  name="nome"
+                  value={novoProduto.nome}
+                  onChange={alterarCampo}
+                  required
+              />
+                </div>
+
+                {/* Descrição do produto */}
+                  <div className="mb-3">
+                    <label className="form-label">Descrição</label>
+                    <textarea
+                      className="form-control"
+                      name="descricao"
+                      value={novoProduto.descricao}
+                      onChange={alterarCampo}
+                      required
+
+                    />
+                  </div>
+
+                   {/* Preço de venda */}
+                   <div className="mb-3">
+                    <label className="form-label">Preço (R$)</label>
+                    <input
+                        className="form-control"
+                        type="number"
+                        name="preco"
+                        min="0"
+                        step="0.01"
+                        value={novoProduto.preco}
+                        onChange={alterarCampo}
+                        required
+                      />
+                      </div>
+
+                    {/* Tamanho da roupa */}
+                    <div className="mb-3">
+                      <label className="form-label">Tamanho</label>
+                      <input
+                      className="form-control"
+                      type="text"
+                      name="tamanho"
+                      value={novoProduto.tamanho}
+                      onChange={alterarCampo}
+                      required
+
+                    />
+                    </div>
+
+                    {/* Cor da roupa */}
+            <div className="mb-3">
+                <label className="form-label">Cor</label>
+                <input
+                    className="form-control"
+                    type="text"
+                    name="cor"
+                    value={novoProduto.cor}
+                    onChange={alterarCampo}
+                    required
+                />
+            </div>
+
+                {/* Categoria do produto */}
+            <div className="mb-3">
+                <label className="form-label">Categoria</label>
+                <input
+                    className="form-control"
+                    type="text"
+                    name="categoria"
+                    value={novoProduto.categoria}
+                    onChange={alterarCampo}
+                    required
+                />
+            </div>
+
+
+            {/* Quantidade disponível em estoque */}
+            <div className="mb-3">
+                <label className="form-label">Estoque</label>
+                <input
+                    className="form-control"
+                    type="number"
+                    name="estoque"
+                    min="0"
+                    step="1"
+                    value={novoProduto.estoque}
+                    onChange={alterarCampo}
+                    required
+                />
+            </div>
+
+                <button
+                type="submit"
+                className="btn-buy me-2"
+            >
+                Salvar produto
+            </button>
+
+
+
+                <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setMostrarFormulario(false)}
+            >
+                Cancelar
+            </button>
+               </form>
+               
+
+               <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setMostrarFormulario(false)}
+           >
+            Fechar formulário
+         </button>
+          </div>
+        )}
         </div>
       </div>
     </div>
