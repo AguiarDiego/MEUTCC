@@ -167,7 +167,7 @@ export default function ContaEquipe() {
               +
             </button>
             <span className="small fw-medium" style={{ color: 'var(--badge-color)' }}>
-              Adicionar item
+              Adicionar
             </span>
           </div>
         </div>
