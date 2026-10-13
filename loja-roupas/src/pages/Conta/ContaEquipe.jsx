@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
     listarProdutos,
+    listarCategorias,
     cadastrarProduto,
+    enviarImagemProduto,
     excluirProduto as excluirProdutoAPI,
 } from '../../service/produtoService.js';
 
@@ -23,7 +25,13 @@ const equipe = {
 };
 
 export default function ContaEquipe() {
-  
+
+  /*
+ * Guarda as categorias recebidas do backend.
+ * Inicialmente, a lista fica vazia até a API responder.
+ */
+const [categorias, setCategorias] = useState([])
+
 const [produtos, setProdutos] = useState([]);
 const [carregando, setCarregando] = useState(true);
 const [erro, setErro] = useState('');
@@ -32,41 +40,83 @@ const navigate = useNavigate();
 // Controla se o formulário de cadastro está visível.
 const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
-// Busca os produtos reais quando a tela é aberta.
-useEffect(() => {
+
+  // Guarda os valores digitados no formulário de cadastro.
+  const [novoProduto, setNovoProduto] = useState({
+    nome: '',
+    descricao: '',
+    preco: '',
+    tamanho: '',
+    cor: '',
+    categoria: '',
+    estoque: '',
+    imagem: null,
+  });
+
+  // Atualiza o campo que o usuário modificar.
+  function alterarCampo(evento) {
+    const { name, value } = evento.target;
+
+    setNovoProduto((anterior) => ({
+      ...anterior,
+      [name]: value,
+    }));
+  }
+
+
+ // Busca os produtos reais quando a tela é aberta.
+  
+  
+  // Primeiro: carrega os produtos.
+  useEffect(() => {
     async function carregarProdutos() {
-        try {
-            const dados = await listarProdutos();
+      try {
+        const dados = await listarProdutos();
 
-            // Adapta os campos do backend para os nomes usados na tela.
-            const produtosFormatados = dados.map((produto) => {
-    // Obtém o nome do arquivo de imagem enviado pelo backend.
-    const nomeImagem = produto.imagem?.caminho;
+        const produtosFormatados = dados.map((produto) => {
+          const nomeImagem = produto.imagem?.caminho;
 
-    // Monta a URL para exibir a imagem salva pelo Spring Boot.
-    const imagemBackend = nomeImagem
-        ? `http://localhost:8080/imagens/${nomeImagem}`
-        : '/Imagem/placeholder.svg';
+          const imagemBackend = nomeImagem
+            ? `http://localhost:8080/imagens/${nomeImagem}`
+            : '/Imagem/placeholder.svg';
 
-    return {
-        ...produto,
-        name: produto.nome,
-        price: Number(produto.preco),
-        image: imagemBackend,
-    };
-});
+          return {
+            ...produto,
+            name: produto.nome,
+            price: Number(produto.preco),
+            image: imagemBackend,
+          };
+        });
 
-            setProdutos(produtosFormatados);
-        } catch (erro) {
-            console.error('Erro ao carregar produtos:', erro);
-            setErro('Não foi possível carregar os produtos.');
-        } finally {
-            setCarregando(false);
-        }
+        setProdutos(produtosFormatados);
+      } catch (erro) {
+        console.error('Erro ao carregar produtos:', erro);
+        setErro('Não foi possível carregar os produtos.');
+      } finally {
+        setCarregando(false);
+      }
     }
 
     carregarProdutos();
-}, []);
+  }, []);
+
+  // Segundo: carrega as categorias.
+  useEffect(() => {
+    async function carregarCategorias() {
+      try {
+        const dados = await listarCategorias();
+        setCategorias(dados);
+      } catch (erro) {
+        console.error('Erro ao carregar categorias:', erro);
+      }
+    }
+
+    carregarCategorias();
+  }, []);
+
+
+     
+   
 
   function sair() {
     navigate('/loginequipe');
@@ -105,6 +155,78 @@ try {
   function adicionarItem() {
     setMostrarFormulario(true);
   }
+
+
+  
+  // Envia os dados do formulário para o backend.
+  async function salvarProduto(evento) {
+    // Impede que a página recarregue ao enviar o formulário.
+    evento.preventDefault();
+
+    try {
+      // Prepara os dados no formato esperado pelo Spring Boot.
+      const produto = {
+        nome: novoProduto.nome,
+        descricao: novoProduto.descricao,
+        preco: Number(novoProduto.preco),
+        tamanho: novoProduto.tamanho,
+        cor: novoProduto.cor,
+        estoque: Number(novoProduto.estoque),
+
+        // O backend espera uma categoria relacionada por ID.
+        categoria: {
+          id: Number(novoProduto.categoria),
+        },
+      };
+
+      
+    
+
+
+      // Envia o produto para o endpoint POST /produtos.
+      const produtoCadastrado = await cadastrarProduto(produto);
+
+       // Se o usuário selecionou uma imagem, envia para o backend.
+      if (novoProduto.imagem) {
+        await enviarImagemProduto(
+          produtoCadastrado.id,
+          novoProduto.imagem
+        );
+      }
+
+
+      // Atualiza a lista exibida na tela sem precisar recarregar.
+      setProdutos((anteriores) => [
+        ...anteriores,
+        {
+          ...produtoCadastrado,
+          name: produtoCadastrado.nome,
+          price: Number(produtoCadastrado.preco),
+          image: produtoCadastrado.imagem?.caminho
+            ? `http://localhost:8080/imagens/${produtoCadastrado.imagem.caminho}`
+            : '/Imagem/placeholder.svg',
+        },
+      ]);
+
+      // Limpa o formulário após o cadastro.
+      setNovoProduto({
+        nome: '',
+        descricao: '',
+        preco: '',
+        tamanho: '',
+        cor: '',
+        categoria: '',
+        estoque: '',
+      });
+
+      setMostrarFormulario(false);
+      alert('Produto cadastrado com sucesso!');
+    } catch (erro) {
+      console.error('Erro ao cadastrar produto:', erro);
+      alert('Não foi possível cadastrar o produto. Confira o console e o backend.');
+    }
+  }
+
 
   return (
     <div className="container my-5">
@@ -267,6 +389,26 @@ try {
               />
                 </div>
 
+                {/* Seleciona a imagem do produto no computador. */}
+         <div className="mb-3">
+         <label className="form-label">Imagem do produto</label>
+
+         <input
+        className="form-control"
+        type="file"
+        name="imagem"
+        accept="image/*"
+        onChange={(evento) => {
+            const arquivo = evento.target.files?.[0] || null;
+
+            setNovoProduto((anterior) => ({
+                ...anterior,
+                imagem: arquivo,
+            }));
+             }}
+            />
+          </div>
+
                 {/* Descrição do produto */}
                   <div className="mb-3">
                     <label className="form-label">Descrição</label>
@@ -322,18 +464,21 @@ try {
                 />
             </div>
 
-                {/* Categoria do produto */}
-            <div className="mb-3">
-                <label className="form-label">Categoria</label>
-                <input
-                    className="form-control"
-                    type="text"
-                    name="categoria"
-                    value={novoProduto.categoria}
-                    onChange={alterarCampo}
-                    required
-                />
-            </div>
+               {/* Mostra as categorias que vieram do banco de dados. */}
+          <select
+                 name="categoria"
+                 value={novoProduto.categoria}
+                 onChange={alterarCampo}
+                required
+          >
+    <option value="">Selecione uma categoria</option>
+
+          {categorias.map((categoria) => (
+        <option key={categoria.id} value={categoria.id}>
+            {categoria.nome}
+        </option>
+        ))}
+        </select>
 
 
             {/* Quantidade disponível em estoque */}
