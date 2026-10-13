@@ -5,10 +5,10 @@ import {
     listarProdutos,
     listarCategorias,
     cadastrarProduto,
+    atualizarProduto,
     enviarImagemProduto,
     excluirProduto as excluirProdutoAPI,
 } from '../../service/produtoService.js';
-
 
 // Dados fake do membro da equipe. Na quinta isso vem da API.
 const equipe = {
@@ -40,6 +40,9 @@ const navigate = useNavigate();
 // Controla se o formulário de cadastro está visível.
 const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
+// Guarda o ID do produto que estamos editando.
+// null significa que estamos cadastrando um produto novo.
+const [produtoEditandoId, setProdutoEditandoId] = useState(null);
 
   // Guarda os valores digitados no formulário de cadastro.
   const [novoProduto, setNovoProduto] = useState({
@@ -147,9 +150,38 @@ try {
 
 }
 
-  function editarProduto(id) {
-    alert(`Editar produto #${id} - funcionalidade a implementar`);
+ 
+function editarProduto(id) {
+  // Localiza na lista o produto que o usuário escolheu editar.
+  const produto = produtos.find((item) => item.id === id);
+
+  // Interrompe a operação caso o produto não seja encontrado.
+  if (!produto) {
+    alert('Produto não encontrado.');
+    return;
   }
+
+  // Guarda o ID para sabermos que estamos editando, e não cadastrando.
+  setProdutoEditandoId(id);
+
+  // Preenche o formulário com os dados atuais do produto.
+  setNovoProduto({
+    nome: produto.nome ?? produto.name ?? '',
+    descricao: produto.descricao ?? '',
+    preco: String(produto.preco ?? produto.price ?? ''),
+    tamanho: produto.tamanho ?? '',
+    cor: produto.cor ?? '',
+    categoria: produto.categoria?.id
+      ? String(produto.categoria.id)
+      : '',
+    estoque: String(produto.estoque ?? ''),
+    imagem: null, // Só envia uma imagem se o usuário escolher outra.
+  });
+
+  // Torna o formulário visível.
+  setMostrarFormulario(true);
+}
+  
 
   // Abre o formulário de cadastro de produtos.
   function adicionarItem() {
@@ -159,9 +191,14 @@ try {
 
   
   // Envia os dados do formulário para o backend.
+  
+  // Envia os dados do formulário para o backend.
   async function salvarProduto(evento) {
-    // Impede que a página recarregue ao enviar o formulário.
+    // Impede que o navegador recarregue a página.
     evento.preventDefault();
+
+    // Identifica se vamos editar ou cadastrar um produto.
+    const estavaEditando = produtoEditandoId !== null;
 
     try {
       // Prepara os dados no formato esperado pelo Spring Boot.
@@ -172,43 +209,51 @@ try {
         tamanho: novoProduto.tamanho,
         cor: novoProduto.cor,
         estoque: Number(novoProduto.estoque),
-
-        // O backend espera uma categoria relacionada por ID.
         categoria: {
           id: Number(novoProduto.categoria),
         },
       };
 
-      
-    
+      let idProdutoSalvo;
 
+      if (estavaEditando) {
+        // Atualiza o produto existente usando o ID.
+        await atualizarProduto(produtoEditandoId, produto);
+        idProdutoSalvo = produtoEditandoId;
+      } else {
+        // Cadastra um produto novo.
+        const produtoCadastrado = await cadastrarProduto(produto);
+        idProdutoSalvo = produtoCadastrado.id;
+      }
 
-      // Envia o produto para o endpoint POST /produtos.
-      const produtoCadastrado = await cadastrarProduto(produto);
-
-       // Se o usuário selecionou uma imagem, envia para o backend.
+      // Envia uma imagem se o usuário tiver selecionado um arquivo.
       if (novoProduto.imagem) {
         await enviarImagemProduto(
-          produtoCadastrado.id,
+          idProdutoSalvo,
           novoProduto.imagem
         );
       }
 
+      // Busca novamente os produtos atualizados na API.
+      const dados = await listarProdutos();
 
-      // Atualiza a lista exibida na tela sem precisar recarregar.
-      setProdutos((anteriores) => [
-        ...anteriores,
-        {
-          ...produtoCadastrado,
-          name: produtoCadastrado.nome,
-          price: Number(produtoCadastrado.preco),
-          image: produtoCadastrado.imagem?.caminho
-            ? `http://localhost:8080/imagens/${produtoCadastrado.imagem.caminho}`
+      const produtosFormatados = dados.map((item) => {
+        const nomeImagem = item.imagem?.caminho;
+
+        return {
+          ...item,
+          name: item.nome,
+          price: Number(item.preco),
+          image: nomeImagem
+            ? `http://localhost:8080/imagens/${nomeImagem}`
             : '/Imagem/placeholder.svg',
-        },
-      ]);
+        };
+      });
 
-      // Limpa o formulário após o cadastro.
+      // Atualiza a lista exibida na tela.
+      setProdutos(produtosFormatados);
+
+      // Limpa os campos após concluir a operação.
       setNovoProduto({
         nome: '',
         descricao: '',
@@ -217,17 +262,30 @@ try {
         cor: '',
         categoria: '',
         estoque: '',
+        imagem: null,
       });
 
+      // Sai do modo de edição e fecha o formulário.
+      setProdutoEditandoId(null);
       setMostrarFormulario(false);
-      alert('Produto cadastrado com sucesso!');
+
+      // Mostra uma mensagem de acordo com a operação realizada.
+      alert(
+        estavaEditando
+          ? 'Produto atualizado com sucesso!'
+          : 'Produto cadastrado com sucesso!'
+      );
     } catch (erro) {
-      console.error('Erro ao cadastrar produto:', erro);
-      alert('Não foi possível cadastrar o produto. Confira o console e o backend.');
+      console.error('Erro ao salvar produto:', erro);
+
+      alert(
+        estavaEditando
+          ? 'Não foi possível atualizar o produto.'
+          : 'Não foi possível cadastrar o produto.'
+      );
     }
   }
-
-
+   
   return (
     <div className="container my-5">
       <p className="text-center text-muted mb-2">
@@ -373,7 +431,11 @@ try {
            {/* Formulário de cadastro de produto */}
           {mostrarFormulario && (
            <div className="card p-4 mt-4">
-         <h5 className="mb-3">Cadastrar novo produto</h5>
+             <h5 className="mb-3">
+            {produtoEditandoId !== null
+            ? 'Editar produto'
+            : 'Cadastrar novo produto'}
+            </h5>
 
                 <form onSubmit={salvarProduto}>
             {/* Nome que aparecerá na loja */}
