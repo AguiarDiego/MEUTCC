@@ -95,8 +95,8 @@ export default function Header() {
                   CONTATO
                 </Link>
               </li>
-              <li className="nav-item">
-                <Link className="nav-link fw-medium" to="/carrinho">
+                            <li className="nav-item">
+                <Link className="nav-link fw-medium" to="/sobrenos">
                   SOBRE NÓS
                 </Link>
               </li>

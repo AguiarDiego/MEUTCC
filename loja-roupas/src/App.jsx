@@ -4,11 +4,12 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/HomeCliente/Home';
 import Cart from './pages/Carrinho/Cart';
-import Contact from './pages/Contato/Contato';
+import Contact from './pages/HomeCliente/Contato';
 import Login from './pages/Login/Login';
-import LoginEquipe from './pages/Login/LoginEquipe'
-import ContaEquipe from './pages/Conta/ContaEquipe'
-import GerenciarPedidos from './pages/Conta/GerenciarPedidos'
+import LoginEquipe from './pages/Login/LoginEquipe';
+import ContaEquipe from './pages/Conta/ContaEquipe';
+import GerenciarPedidos from './pages/Conta/GerenciarPedidos';
+import SobreNos from './pages/HomeCliente/SobreNos';
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/loginequipe" element={<LoginEquipe />} />
         <Route path="/contaequipe" element={<ContaEquipe />} />
         <Route path="/gerenciarpedidos" element={<GerenciarPedidos />} />
+        <Route path="/sobrenos" element={<SobreNos />} />
       </Routes>
       <Footer />
     </CartProvider>
