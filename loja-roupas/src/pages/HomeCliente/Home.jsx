@@ -39,44 +39,50 @@ export default function Home() {
          *
          * Por isso fazemos essa adaptação aqui.
          */
+
         // Transforma os dados do backend no formato usado pelo React.
-const produtosFormatados = produtosDoBanco.map((produto) => {
+        const produtosFormatados = produtosDoBanco.map((produto) => {
 
-  // Busca informações visuais antigas, caso existam.
-  const produtoVisual = staticProducts.find(
-    (produtoStatico) => produtoStatico.id === produto.id
-  );
+          // Busca informações visuais antigas, caso existam.
+          const produtoVisual = staticProducts.find(
+            (produtoStatico) => produtoStatico.id === produto.id
+          );
 
-  // Verifica se o backend retornou uma imagem cadastrada.
-  const nomeImagem = produto.imagem?.caminho;
+          // Verifica se o backend retornou uma imagem cadastrada.
+          const nomeImagem = produto.imagem?.caminho;
 
-  // Monta o endereço da imagem disponibilizada pelo Spring Boot.
-  const imagemBackend = nomeImagem
-    ? `http://localhost:8080/imagens/${nomeImagem}`
-    : null;
+          // Monta o endereço da imagem disponibilizada pelo Spring Boot.
+          const imagemBackend = nomeImagem
+            ? `http://localhost:8080/imagens/${nomeImagem}`
+            : null;
 
-  return {
-    id: produto.id,
-    name: produto.nome,
-    price: produto.preco,
+          const precoNormal = Number(
+            String(produto.preco).replace(',', '.')
+          );
 
-    // Prioriza a imagem cadastrada no backend.
-    // Se não houver, usa a imagem antiga ou o placeholder.
-    image:
-      imagemBackend ||
-      produtoVisual?.image ||
-      '/Imagem/placeholder.svg',
+          return {
+            id: produto.id,
+            name: produto.nome,
+            price: precoNormal.toFixed(2).replace('.', ','),
+            pricePix: (precoNormal * 0.95).toFixed(2).replace('.', ','),
+            installment: (precoNormal / 4).toFixed(2).replace('.', ','),
 
-    pricePix: produtoVisual?.pricePix || produto.preco,
-    descricao: produto.descricao,
-    tamanho: produto.tamanho,
-    cor: produto.cor,
-    estoque: produto.estoque,
-    categoria: produto.categoria,
-  };
-});
+            // Prioriza a imagem cadastrada no backend.
+            // Se não houver, usa a imagem antiga ou o placeholder.
+            image:
+              imagemBackend ||
+              produtoVisual?.image ||
+              '/Imagem/placeholder.svg',
 
-  setProducts(produtosFormatados);
+            descricao: produto.descricao,
+            tamanho: produto.tamanho,
+            cor: produto.cor,
+            estoque: produto.estoque,
+            categoria: produto.categoria,
+          };
+        });
+
+        setProducts(produtosFormatados);
 
       } catch (erro) {
 
@@ -203,6 +209,10 @@ const produtosFormatados = produtosDoBanco.map((produto) => {
                     }}
                   >
                     R${product.pricePix} com Pix
+                  </p>
+
+                  <p className="mb-2">
+                    ou 4x de R${product.installment} sem juros
                   </p>
 
                   <button
