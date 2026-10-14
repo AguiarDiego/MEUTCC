@@ -52,7 +52,7 @@ export default function Login() {
         <div className="text-center small">
           <p className="mb-2">
             Não possui uma conta ainda?{' '}
-            <Link to="/criar-conta" className="fw-bold link-vinho">
+            <Link to="/cadastro" className="fw-bold link-vinho">
               Criar uma conta
             </Link>
           </p>

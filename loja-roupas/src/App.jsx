@@ -10,6 +10,7 @@ import LoginEquipe from './pages/Login/LoginEquipe';
 import ContaEquipe from './pages/Conta/ContaEquipe';
 import GerenciarPedidos from './pages/Conta/GerenciarPedidos';
 import SobreNos from './pages/HomeCliente/SobreNos';
+import Cadastro from './pages/Login/Cadastro';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/contaequipe" element={<ContaEquipe />} />
         <Route path="/gerenciarpedidos" element={<GerenciarPedidos />} />
         <Route path="/sobrenos" element={<SobreNos />} />
+        <Route path="/cadastro" element={<Cadastro />} />
       </Routes>
       <Footer />
     </CartProvider>
