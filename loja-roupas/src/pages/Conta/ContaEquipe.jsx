@@ -10,17 +10,41 @@ import {
     excluirProduto as excluirProdutoAPI,
 } from '../../service/produtoService.js';
 
-// Dados fake do membro da equipe. Na quinta isso vem da API.
-const equipe = {
-  nome: 'Nome do Responsável',
-  email: 'equipe@guetosl.com',
-  documento: '000.000.000-00',
-  telefone: '+55 11 90000-0000',
-  endereco: {
-    rua: 'R. Exemplo, 123',
-    bairro: 'Bairro, Cidade, 00000-000',
-    estado: 'São Paulo',
-    pais: 'Brasil',
+const membrosEquipe = {
+  'arthuraugusto2@guetosl.com': {
+    nome: 'Arthur da Silva Augusto',
+    email: 'arthuraugusto2@guetosl.com',
+    rm: '98123',
+  },
+  'bryanaraujo5@guetosl.com': {
+    nome: 'Bryan de Araújo Ribeiro',
+    email: 'bryanaraujo5@guetosl.com',
+    rm: '98248',
+  },
+  'danielbrito6@guetosl.com': {
+    nome: 'Daniel Brito Vilela',
+    email: 'danielbrito6@guetosl.com',
+    rm: '99075',
+  },
+  'diegoaguiar9@guetosl.com': {
+    nome: 'Diego Lima de Aguiar',
+    email: 'diegoaguiar9@guetosl.com',
+    rm: '98890',
+  },
+  'enzogabriel13@guetosl.com': {
+    nome: 'Enzo Gabriel Ferreira da Silva',
+    email: 'enzogabriel13@guetosl.com',
+    rm: '99084',
+  },
+  'gabrielfernandes19@guetosl.com': {
+    nome: 'Gabriel Fernandesde Aquino',
+    email: 'gabrielfernandes19@guetosl.com',
+    rm: '99088',
+  },
+  'igorbrasil31@guetosl.com': {
+    nome: 'Igor Brasil Domingues',
+    email: 'igorbrasil31@guetosl.com',
+    rm: '99222',
   },
 };
 
@@ -36,6 +60,17 @@ const [produtos, setProdutos] = useState([]);
 const [carregando, setCarregando] = useState(true);
 const [erro, setErro] = useState('');
 const navigate = useNavigate();
+const emailEquipe = localStorage.getItem('emailEquipe');
+const equipe = membrosEquipe[emailEquipe];
+
+useEffect(() => {
+  if (
+    localStorage.getItem('equipeLogada') !== 'true' ||
+    !equipe
+  ) {
+    navigate('/loginequipe', { replace: true });
+  }
+}, [navigate, equipe]);
 
 // Controla se o formulário de cadastro está visível.
 const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -122,8 +157,11 @@ const [produtoEditandoId, setProdutoEditandoId] = useState(null);
    
 
   function sair() {
-    navigate('/loginequipe');
-  }
+  localStorage.removeItem('equipeLogada');
+  localStorage.removeItem('emailEquipe');
+
+  navigate('/loginequipe', { replace: true });
+}
 
   async function excluirProduto(id) {
 // Pede confirmação antes de excluir.
@@ -285,6 +323,13 @@ function editarProduto(id) {
       );
     }
   }
+
+  if (
+  localStorage.getItem('equipeLogada') !== 'true' ||
+  !equipe
+) {
+  return null;
+}
    
   return (
     <div className="container my-5">
@@ -316,45 +361,14 @@ function editarProduto(id) {
           </Link>
 
           <div className="d-flex justify-content-between align-items-start mb-2">
-            <h6 className="fw-bold mb-0">Dados Pessoais</h6>
-            <button
-              type="button"
-              className="btn btn-link p-0 small"
-              style={{ color: 'var(--primary-color)' }}
-              onClick={() => alert('Editar dados pessoais - funcionalidade a implementar')}
-            >
-              Editar
-            </button>
+            <h6 className="fw-bold mb-2">Dados Pessoais</h6>
           </div>
           <p className="mb-4 small">
-            <strong>{equipe.nome}</strong>
+            <strong>Nome: </strong>{equipe.nome}
             <br />
-            {equipe.email}
+            <strong>Email: </strong>{equipe.email}
             <br />
-            <strong>CPF / CNPJ:</strong> {equipe.documento}
-            <br />
-            <strong>Telefone:</strong> {equipe.telefone}
-          </p>
-
-          <div className="d-flex justify-content-between align-items-start mb-2">
-            <h6 className="fw-bold mb-0">Meus endereços</h6>
-            <button
-              type="button"
-              className="btn btn-link p-0 small"
-              style={{ color: 'var(--primary-color)' }}
-              onClick={() => alert('Editar endereço - funcionalidade a implementar')}
-            >
-              Editar
-            </button>
-          </div>
-          <p className="mb-4 small">
-            {equipe.endereco.rua}
-            <br />
-            {equipe.endereco.bairro}
-            <br />
-            {equipe.endereco.estado}
-            <br />
-            {equipe.endereco.pais}
+            <strong>RM: </strong>{equipe.rm}
           </p>
 
           <button type="button" onClick={sair} className="btn btn-dark px-4">
