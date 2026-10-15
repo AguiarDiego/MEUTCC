@@ -183,28 +183,61 @@
   font-size: 16px;
 }
 
-.cart__checkout {
+/* Botão Calcular frete */
+.cart__shipping button {
   width: 100%;
-  margin-top: 22px;
-  padding: 15px;
-  background: var(--paper);
-  border: none;
-  color: var(--bg);
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--badge-color);
+  border: 1px solid var(--badge-color);
+  color: #fff;
   font-family: var(--font-mono);
-  font-size: 13px;
-  letter-spacing: 0.05em;
+  font-size: 11px;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  transition: background 0.2s ease;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
+.cart__shipping button:hover:not(:disabled) {
+  background: transparent;
+  border-color: var(--badge-color);
+  color: var(--badge-color);
+}
+
+.cart__shipping button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Botão Finalizar compra */
+.cart__checkout {
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--badge-color);
+  border: 1px solid var(--badge-color);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+
 .cart__checkout:hover {
-  background: var(--gold);
+  background: transparent;
+  color: var(--badge-color);
+  border-color: var(--badge-color);
 }
 
 @media (max-width: 860px) {
   .cart__layout {
     grid-template-columns: 1fr;
   }
+
   .cart__summary {
     position: static;
   }
@@ -214,13 +247,68 @@
   .cart {
     padding: 48px 20px 72px;
   }
+
   .cart__line {
     grid-template-columns: 64px 1fr;
   }
+
   .cart__line-price {
     grid-column: 2;
   }
+
   .cart__line-info {
     grid-column: 2;
   }
+}
+
+.cart__summary-row--total > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cart__total-values {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cart__total-calculation {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.cart__total-calculation strong {
+  font-weight: 700;
+}
+
+.cart__total-final {
+  text-align: right;
+}
+
+.cart__total-values {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+}
+
+.cart__total-calculation {
+  font-size: 14.4px;
+}
+
+.cart__total-calculation strong {
+  font-weight: 700;
+}
+
+.cart__total-final {
+  font-weight: 400;
+  color: inherit;
+}
+
+.cart__total-final strong {
+  font-weight: 700;
+  color: var(--badge-color);
 }

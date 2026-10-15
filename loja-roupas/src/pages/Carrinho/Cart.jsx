@@ -59,7 +59,8 @@ async function calcularFrete() {
     0
   );
 
-  const shipping = subtotal === 0 ? 0 : frete ?? 0;
+  const shipping =
+  subtotal === 0 || subtotal >= 238.9 ? 0 : frete ?? 0;
   const total = subtotal + shipping;
 
   if (lines.length === 0) {
@@ -180,29 +181,47 @@ async function calcularFrete() {
           </div>
 
 
-          <div className="cart__summary-row">
+          
+          {frete !== null && (
+            <div className="cart__summary-row">
             <span>Frete</span>
             <span>
-              {shipping === 0 ? 'Grátis' : formatPrice(shipping)}
+          {shipping === 0 ? 'Grátis' : formatPrice(shipping)}
             </span>
           </div>
+          )}
 
-          {shipping > 0 && (
+
+          
+          {subtotal < 238.9 && (
             <p className="cart__summary-note">
-              Frete grátis a partir de R$238,90.
+              Frete grátis a partir de R$ 238,90.
             </p>
           )}
 
+
+          <div className="cart__summary-row">
+            <span>Subtotal</span>
+            <span>{formatPrice(subtotal)}</span>
+          </div>
+
           <div className="cart__summary-row cart__summary-row--total">
-            <span>Total</span>
-            <span>{formatPrice(total)}</span>
+            <div className="cart__total-values">
+              <span className="cart__total-calculation">
+                <strong>Total:</strong> {formatPrice(subtotal)} + {formatPrice(shipping)}
+              </span>
+
+              <span className="cart__total-final">
+                <strong>Total: </strong> {formatPrice(total)}
+              </span>
+            </div>
           </div>
 
           <button type="button" className="cart__checkout">
             Finalizar compra
           </button>
-        </aside>
-      </div>
-    </main>
+          </aside>
+        </div>
+          </main>
   );
 }
