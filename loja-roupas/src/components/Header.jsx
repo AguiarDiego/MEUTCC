@@ -6,10 +6,13 @@ import { useCart } from '../context/CartContext';
 export default function Header() {
   const { totalCount } = useCart();
   const [clienteLogado, setClienteLogado] = useState(null);
+  const [equipeLogada, setEquipeLogada] = useState(false);
 
   useEffect(() => {
     function atualizarCliente() {
       const clienteSalvo = sessionStorage.getItem('clienteLogado');
+      const equipeSalva = localStorage.getItem('equipeLogada') === 'true';
+      setEquipeLogada(equipeSalva);
 
       try {
         setClienteLogado(clienteSalvo ? JSON.parse(clienteSalvo) : null);
@@ -21,10 +24,12 @@ export default function Header() {
     atualizarCliente();
 
     window.addEventListener('clienteLogadoAtualizado', atualizarCliente);
+    window.addEventListener('equipeLogadaAtualizada', atualizarCliente);
 
-    return () => {
-      window.removeEventListener('clienteLogadoAtualizado', atualizarCliente);
-    };
+  return () => {
+    window.removeEventListener('clienteLogadoAtualizado', atualizarCliente);
+    window.removeEventListener('equipeLogadaAtualizada', atualizarCliente);
+};
   }, []);
 
   return (
@@ -59,13 +64,19 @@ export default function Header() {
 
           <div className="user-actions d-flex align-items-center gap-3 position-absolute top-50 end-0 translate-middle-y">
             <Link
-              to={clienteLogado ? '/contausuario' : '/login'}
+          to={
+              equipeLogada
+              ? '/contaequipe'
+              : clienteLogado
+              ? '/contausuario'
+              : '/login'
+          }
               className="d-flex align-items-center gap-1 text-white text-decoration-none"
             >
-              <i className="bi bi-person"></i>
-              <span className="d-none d-md-inline">
-                {clienteLogado ? 'Minha Conta' : 'Login'}
-              </span>
+          <i className="bi bi-person"></i>
+          <span className="d-none d-md-inline">
+          {equipeLogada || clienteLogado ? 'Minha Conta' : 'Login'}
+          </span>
             </Link>
 
             <Link

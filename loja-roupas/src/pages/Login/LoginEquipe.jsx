@@ -31,9 +31,14 @@ export default function LoginEquipe() {
   ) {
     localStorage.setItem('equipeLogada', 'true');
     localStorage.setItem(
-    'emailEquipe',
+      'emailEquipe',
     email.trim().toLowerCase()
   );
+
+    window.dispatchEvent(new Event('equipeLogadaAtualizada'));
+
+    setErro('');
+    navigate('/contaequipe');
 
     setErro('');
     navigate('/contaequipe');

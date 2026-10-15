@@ -152,16 +152,17 @@ const [produtoEditandoId, setProdutoEditandoId] = useState(null);
     carregarCategorias();
   }, []);
 
-
-     
-   
-
-  function sair() {
+  
+function sair() {
   localStorage.removeItem('equipeLogada');
   localStorage.removeItem('emailEquipe');
 
-  navigate('/loginequipe', { replace: true });
+  window.dispatchEvent(new Event('equipeLogadaAtualizada'));
+
+  navigate('/login', { replace: true });
 }
+
+
 
   async function excluirProduto(id) {
 // Pede confirmação antes de excluir.

@@ -1,4 +1,4 @@
-
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { formatPrice, parsePrice } from '../../data/products.js';
 import { useCart } from '../../context/CartContext';
@@ -6,6 +6,50 @@ import '../Carrinho/Cart.css';
 
 export default function Cart() {
   const { items, removeItem, setQty } = useCart();
+  const [cep, setCep] = useState('');
+  const [frete, setFrete] = useState(null);
+  const [calculandoFrete, setCalculandoFrete] = useState(false);
+
+  
+async function calcularFrete() {
+  const cepLimpo = cep.replace(/\D/g, '');
+
+  if (cepLimpo.length !== 8) {
+    alert('Digite um CEP válido com 8 números.');
+    return;
+  }
+
+  setCalculandoFrete(true);
+  setFrete(null);
+
+  try {
+    const resposta = await fetch(
+      `http://localhost:8080/frete/cotacao?cep=${cepLimpo}`
+    );
+
+    if (!resposta.ok) {
+      throw new Error('Não foi possível consultar o frete.');
+    }
+
+    const dados = await resposta.json();
+    const opcao = dados.find(
+      (servico) => !servico.error && servico.price
+    );
+
+    if (!opcao) {
+      alert('Nenhuma opção de frete disponível para esse CEP.');
+      return;
+    }
+
+    setFrete(Number(opcao.price));
+  } catch (erro) {
+    console.error('Erro ao calcular frete:', erro);
+    alert('Não foi possível calcular o frete. Verifique se o backend está funcionando.');
+  } finally {
+    setCalculandoFrete(false);
+  }
+}
+
 
   const lines = items.filter((item) => item.product);
 
@@ -15,9 +59,7 @@ export default function Cart() {
     0
   );
 
-  const shipping =
-    subtotal === 0 ? 0 : subtotal >= 238.9 ? 0 : 19.9;
-
+  const shipping = subtotal === 0 ? 0 : frete ?? 0;
   const total = subtotal + shipping;
 
   if (lines.length === 0) {
@@ -96,10 +138,47 @@ export default function Cart() {
         <aside className="cart__summary">
           <h2>Resumo</h2>
 
-          <div className="cart__summary-row">
-            <span>Subtotal</span>
-            <span>{formatPrice(subtotal)}</span>
+          <div className="cart__shipping">
+            <label htmlFor="cep">Calcular frete pelo CEP</label>
+
+            <input
+              id="cep"
+              type="text"
+              value={cep}
+              onChange={(event) => {
+                const valor = event.target.value
+                  .replace(/\D/g, '')
+                  .slice(0, 8);
+
+                setCep(valor);
+                setFrete(null);
+              }}
+              placeholder="Digite seu CEP"
+              maxLength={8}
+              inputMode="numeric"
+            />
+
+            <button
+              type="button"
+              onClick={calcularFrete}
+              disabled={calculandoFrete}
+            >
+              {calculandoFrete ? 'Calculando...' : 'Calcular frete'}
+            </button>
           </div>
+
+          
+          <div className="cart__summary-row">
+            <span>Frete</span>
+          <span>
+            {frete === null
+            ? 'Calcule o frete'
+            : frete === 0
+            ? 'Grátis'
+            : formatPrice(frete)}
+          </span>
+          </div>
+
 
           <div className="cart__summary-row">
             <span>Frete</span>
