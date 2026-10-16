@@ -91,7 +91,7 @@ export default function ContaEquipe() {
     cor: '',
     categoria: '',
     estoque: '',
-    imagem: null,
+    imagens: [],
   });
 
   // Atualiza o campo que o usuário modificar.
@@ -111,7 +111,10 @@ export default function ContaEquipe() {
         const dados = await listarProdutos();
 
         const produtosFormatados = dados.map((produto) => {
-          const nomeImagem = produto.imagem?.caminho;
+          const imagensOrdenadas = [...(produto.imagens || [])]
+            .sort((a, b) => a.id - b.id);
+
+          const nomeImagem = imagensOrdenadas[0]?.caminho;
 
           const imagemBackend = nomeImagem
             ? `http://localhost:8080/imagens/${nomeImagem}`
@@ -229,7 +232,7 @@ export default function ContaEquipe() {
         ? String(produto.categoria.id)
         : '',
       estoque: String(produto.estoque ?? ''),
-      imagem: null,
+      imagens: [],
     });
 
     setMostrarFormulario(true);
@@ -247,7 +250,7 @@ export default function ContaEquipe() {
       cor: '',
       categoria: '',
       estoque: '',
-      imagem: null,
+      imagens: [],
     });
 
     setMostrarFormulario(true);
@@ -282,19 +285,19 @@ export default function ContaEquipe() {
         idProdutoSalvo = produtoCadastrado.id;
       }
 
-      // Envia a imagem, se uma nova imagem tiver sido selecionada.
-      if (novoProduto.imagem) {
-        await enviarImagemProduto(
-          idProdutoSalvo,
-          novoProduto.imagem
-        );
+      // Envia todas as imagens selecionadas, uma por vez.
+      for (const arquivo of novoProduto.imagens) {
+        await enviarImagemProduto(idProdutoSalvo, arquivo);
       }
 
       // Atualiza a lista de produtos.
       const dados = await listarProdutos();
 
       const produtosFormatados = dados.map((item) => {
-        const nomeImagem = item.imagem?.caminho;
+        const imagensOrdenadas = [...(item.imagens || [])]
+          .sort((a, b) => a.id - b.id);
+
+        const nomeImagem = imagensOrdenadas[0]?.caminho;
 
         return {
           ...item,
@@ -317,7 +320,7 @@ export default function ContaEquipe() {
         cor: '',
         categoria: '',
         estoque: '',
-        imagem: null,
+        imagens: [],
       });
 
       setProdutoEditandoId(null);
@@ -385,18 +388,17 @@ export default function ContaEquipe() {
             </h4>
 
             <p className="text-muted small">
-            Veja as mensagens enviadas por usuários na aba Contato.
-          </p>
+              Veja as mensagens enviadas por usuários na aba Contato.
+            </p>
 
             <Link
-            to="/mensagenscontato"
-            className="btn-buy d-inline-block text-center text-decoration-none mb-4"
-            style={{ padding: '10px 24px' }}
-          >
-            <i className="bi bi-envelope me-2"></i>
-            Mensagens de contato
-          </Link>
-          
+              to="/mensagenscontato"
+              className="btn-buy d-inline-block text-center text-decoration-none mb-4"
+              style={{ padding: '10px 24px' }}
+            >
+              <i className="bi bi-envelope me-2"></i>
+              Mensagens de contato
+            </Link>
           </section>
 
           <hr className="my-4" />
@@ -528,24 +530,26 @@ export default function ContaEquipe() {
                   />
                 </div>
 
-                {/* Imagem do produto */}
+                {/* Imagens do produto */}
                 <div className="mb-3">
                   <label className="form-label">
-                    Imagem do produto
+                    Imagens do produto
                   </label>
 
                   <input
                     className="form-control"
                     type="file"
-                    name="imagem"
+                    name="imagens"
                     accept="image/*"
+                    multiple
                     onChange={(evento) => {
-                      const arquivo =
-                        evento.target.files?.[0] || null;
+                      const arquivos = Array.from(
+                        evento.target.files || []
+                      );
 
                       setNovoProduto((anterior) => ({
                         ...anterior,
-                        imagem: arquivo,
+                        imagens: arquivos,
                       }));
                     }}
                   />

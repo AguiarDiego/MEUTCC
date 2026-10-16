@@ -7,14 +7,19 @@ export function CartProvider({ children }) {
   const [items, setItems] = useState([]);
 
   function addItem(product) {
+    const tamanho = product.tamanho || '';
+
     setItems((prev) => {
       const existing = prev.find(
-        (item) => String(item.id) === String(product.id)
+        (item) =>
+          String(item.id) === String(product.id) &&
+          (item.product.tamanho || '') === tamanho
       );
 
       if (existing) {
         return prev.map((item) =>
-          String(item.id) === String(product.id)
+          String(item.id) === String(product.id) &&
+          (item.product.tamanho || '') === tamanho
             ? { ...item, qty: item.qty + 1 }
             : item
         );
@@ -24,23 +29,27 @@ export function CartProvider({ children }) {
         ...prev,
         {
           id: product.id,
+          cartKey: `${product.id}-${tamanho}`,
           qty: 1,
-          product: { ...product },
+          product: { ...product, tamanho },
         },
       ];
     });
   }
 
-  function removeItem(id) {
+  function removeItem(cartKey) {
     setItems((prev) =>
-      prev.filter((item) => String(item.id) !== String(id))
+      prev.filter(
+        (item) =>
+          (item.cartKey ?? String(item.id)) !== String(cartKey)
+      )
     );
   }
 
-  function setQty(id, qty) {
+  function setQty(cartKey, qty) {
     setItems((prev) =>
       prev.map((item) =>
-        String(item.id) === String(id)
+        (item.cartKey ?? String(item.id)) === String(cartKey)
           ? { ...item, qty: Math.max(1, qty) }
           : item
       )

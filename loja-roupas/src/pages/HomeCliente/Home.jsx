@@ -1,74 +1,72 @@
 
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { staticProducts } from '../../data/products.js';
 import { listarProdutos } from '../../service/produtoService.js';
 import { useCart } from '../../context/CartContext';
 
 export default function Home() {
-
-  // Guarda os produtos que serão recebidos do backend.
   const [products, setProducts] = useState([]);
-
-  // Guarda o nome do produto que acabou de ser adicionado ao carrinho.
+  const [erro, setErro] = useState(false);
   const [justAdded, setJustAdded] = useState('');
 
-  // Acessa a função responsável por adicionar produtos ao carrinho.
   const { addItem } = useCart();
 
-  /*
-   * Executa quando a página Home é carregada.
-   *
-   * Aqui fazemos uma requisição para o backend:
-   * React → produtoService.js → Spring Boot → SQL Server
-   */
   useEffect(() => {
+    let ativo = true;
 
     async function carregarProdutos() {
       try {
-
-        // Busca os produtos cadastrados no banco.
         const produtosDoBanco = await listarProdutos();
 
-        /*
-         * O backend utiliza nomes diferentes dos usados
-         * atualmente pelo frontend.
-         *
-         * Exemplo:
-         * backend: nome
-         * frontend: name
-         *
-         * Por isso fazemos essa adaptação aqui.
-         */
+        if (!Array.isArray(produtosDoBanco)) {
+          throw new Error('A resposta da API não é uma lista de produtos.');
+        }
 
-        // Transforma os dados do backend no formato usado pelo React.
         const produtosFormatados = produtosDoBanco.map((produto) => {
-
-          // Busca informações visuais antigas, caso existam.
           const produtoVisual = staticProducts.find(
-            (produtoStatico) => produtoStatico.id === produto.id
+            (produtoStatico) =>
+              String(produtoStatico.id) === String(produto.id)
           );
 
-          // Verifica se o backend retornou uma imagem cadastrada.
-          const nomeImagem = produto.imagem?.caminho;
+          // Obtém as imagens do produto e ordena pelo ID.
+          const imagensOrdenadas = [...(produto.imagens || [])].sort(
+            (a, b) => a.id - b.id
+          );
 
-          // Monta o endereço da imagem disponibilizada pelo Spring Boot.
+          const imagem = imagensOrdenadas[0];
+
+          const nomeImagem =
+            typeof imagem === 'string'
+              ? imagem
+              : imagem?.caminho || imagem?.url || imagem?.nomeArquivo;
+
           const imagemBackend = nomeImagem
-            ? `http://localhost:8080/imagens/${nomeImagem}`
+            ? nomeImagem.startsWith('http://') ||
+              nomeImagem.startsWith('https://')
+              ? nomeImagem
+              : `http://localhost:8080/imagens/${nomeImagem.replace(/^\/+/, '')}`
             : null;
 
           const precoNormal = Number(
-            String(produto.preco).replace(',', '.')
+            String(produto.preco ?? 0).replace(',', '.')
           );
+
+          const precoValido = Number.isFinite(precoNormal)
+            ? precoNormal
+            : 0;
 
           return {
             id: produto.id,
-            name: produto.nome,
-            price: precoNormal.toFixed(2).replace('.', ','),
-            pricePix: (precoNormal * 0.95).toFixed(2).replace('.', ','),
-            installment: (precoNormal / 4).toFixed(2).replace('.', ','),
+            name: produto.nome ?? produtoVisual?.name ?? 'Produto',
+            price: precoValido.toFixed(2).replace('.', ','),
+            pricePix: (
+              Math.floor(precoValido * 0.95 * 100) / 100
+            ).toFixed(2).replace('.', ','),
+            installment: (precoValido / 4)
+              .toFixed(2)
+              .replace('.', ','),
 
-            // Prioriza a imagem cadastrada no backend.
-            // Se não houver, usa a imagem antiga ou o placeholder.
             image:
               imagemBackend ||
               produtoVisual?.image ||
@@ -79,57 +77,66 @@ export default function Home() {
             cor: produto.cor,
             estoque: produto.estoque,
             categoria: produto.categoria,
+
+            // Mantém o preço numérico para operações do carrinho.
+            precoNumerico: precoValido,
           };
         });
 
-        setProducts(produtosFormatados);
+        if (ativo) {
+          setProducts(produtosFormatados);
+          setErro(false);
+        }
+      } catch (erroCarregamento) {
+        console.error('Erro ao carregar produtos:', erroCarregamento);
 
-      } catch (erro) {
-
-        // Mostra o erro no console caso a comunicação com o backend falhe.
-        console.error('Erro ao carregar produtos:', erro);
+        if (ativo) {
+          setErro(true);
+        }
       }
     }
 
-    // Executa a função para buscar os produtos.
     carregarProdutos();
 
+    return () => {
+      ativo = false;
+    };
   }, []);
 
-  /*
-   * Adiciona o produto ao carrinho e mostra
-   * a mensagem temporária na parte inferior da tela.
-   */
   function handleAdd(product) {
-    addItem(product);
+    addItem({
+      id: product.id,
+      nome: product.name,
+      name: product.name,
+      preco: product.precoNumerico,
+      price: product.precoNumerico,
+      imagem: product.image,
+      image: product.image,
+      descricao: product.descricao,
+      tamanho: product.tamanho,
+      cor: product.cor,
+    });
 
     setJustAdded(product.name);
 
-    window.clearTimeout(handleAdd._t);
+    window.clearTimeout(handleAdd.timer);
 
-    handleAdd._t = window.setTimeout(
-      () => setJustAdded(''),
-      2200
-    );
+    handleAdd.timer = window.setTimeout(() => {
+      setJustAdded('');
+    }, 2200);
   }
 
   return (
     <main>
-
       <section
         className="py-5"
         style={{ backgroundColor: 'var(--secondary-color)' }}
       >
-
         <div className="container">
-
           <div className="row text-center">
-
             <div className="col-md-4 mb-4 mb-md-0">
               <i className="bi bi-truck fs-3 mb-2 d-block"></i>
-
               <h5>FRETE GRÁTIS</h5>
-
               <p className="text-muted mb-0">
                 Para compras acima de R$238,90
               </p>
@@ -137,9 +144,7 @@ export default function Home() {
 
             <div className="col-md-4 mb-4 mb-md-0">
               <i className="bi bi-percent fs-3 mb-2 d-block"></i>
-
               <h5>10% OFF NA PRIMEIRA COMPRA</h5>
-
               <p className="text-muted mb-0">
                 Use o cupom "GUETOSL10"
               </p>
@@ -147,56 +152,65 @@ export default function Home() {
 
             <div className="col-md-4">
               <i className="bi bi-credit-card fs-3 mb-2 d-block"></i>
-
               <h5>ATÉ 4X SEM JUROS</h5>
-
               <p className="text-muted mb-0">
                 Em todo site
               </p>
             </div>
-
           </div>
-
         </div>
-
       </section>
 
       <section id="colecao" className="container my-3">
-
         <h2 className="section-title my-5">
           DISPONÍVEL AGORA
         </h2>
 
+        {erro && (
+          <div className="alert alert-danger" role="alert">
+            Não foi possível carregar os produtos. Confira se o
+            backend está funcionando e tente novamente.
+          </div>
+        )}
+
+        {!erro && products.length === 0 && (
+          <p className="text-muted text-center my-5">
+            Nenhum produto disponível no momento.
+          </p>
+        )}
+
         <div className="row">
-
           {products.map((product) => (
-
             <div
               className="col-md-4 my-4"
               key={product.id}
             >
-
               <div className="card border-0 shadow-sm mb-4 h-100 product-card">
-
-                <img
-                  src={product.image}
-                  className="card-img-top"
-                  alt={product.name}
-                  style={{
-                    height: '340px',
-                    objectFit: 'cover'
-                  }}
-                  onError={(e) => {
-                    e.currentTarget.src =
-                      '/Imagem/placeholder.svg';
-                  }}
-                />
+                <Link to={`/produto/${product.id}`}>
+                  <img
+                    src={product.image}
+                    className="card-img-top"
+                    alt={product.name}
+                    style={{
+                      height: '340px',
+                      objectFit: 'cover',
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '/Imagem/placeholder.svg';
+                    }}
+                  />
+                </Link>
 
                 <div className="card-body text-center d-flex flex-column">
-
-                  <h5 className="card-title">
-                    {product.name}
-                  </h5>
+                  <Link
+                    to={`/produto/${product.id}`}
+                    className="text-dark text-decoration-none"
+                  >
+                    <h5 className="card-title">
+                      {product.name}
+                    </h5>
+                  </Link>
 
                   <p className="fw-bold mb-0">
                     R${product.price}
@@ -204,9 +218,7 @@ export default function Home() {
 
                   <p
                     className="mb-0"
-                    style={{
-                      color: 'var(--accent-color)'
-                    }}
+                    style={{ color: 'var(--accent-color)' }}
                   >
                     R${product.pricePix} com Pix
                   </p>
@@ -220,20 +232,14 @@ export default function Home() {
                     className="btn btn-dark mt-auto w-100"
                     onClick={() => handleAdd(product)}
                   >
-                    Comprar
+                    Comprar{' '}
                     <i className="bi bi-cart-plus"></i>
                   </button>
-
                 </div>
-
               </div>
-
             </div>
-
           ))}
-
         </div>
-
       </section>
 
       <div
@@ -247,14 +253,10 @@ export default function Home() {
           pointerEvents: 'none',
         }}
         role="status"
+        aria-live="polite"
       >
-
-        {justAdded &&
-          `${justAdded} adicionado ao carrinho`
-        }
-
+        {justAdded && `${justAdded} adicionado ao carrinho`}
       </div>
-
     </main>
   );
 }

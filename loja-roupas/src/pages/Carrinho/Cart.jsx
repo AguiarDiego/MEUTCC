@@ -82,8 +82,8 @@ async function calcularFrete() {
 
       <div className="cart__layout">
         <ul className="cart__list">
-          {lines.map(({ product, qty }) => (
-            <li key={product.id} className="cart__line">
+          {lines.map(({ product, qty, cartKey }) => (
+  <li key={cartKey ?? product.id} className="cart__line">
               <img
                 src={product.image || '/Imagem/placeholder.svg'}
                 alt={product.name}
@@ -96,13 +96,19 @@ async function calcularFrete() {
               <div className="cart__line-info">
                 <div>
                   <h3>{product.name}</h3>
+
+                  {product.tamanho && (
+                <p className="cart__line-size">
+                  Tamanho: {product.tamanho}
+                </p>
+                 )}
                 </div>
 
                 <div className="cart__line-controls">
                   <div className="cart__qty">
                     <button
                       type="button"
-                      onClick={() => setQty(product.id, qty - 1)}
+                      onClick={() => setQty(cartKey ?? String(product.id), qty - 1)}
                       aria-label={`Diminuir quantidade de ${product.name}`}
                     >
                       –
@@ -112,7 +118,7 @@ async function calcularFrete() {
 
                     <button
                       type="button"
-                      onClick={() => setQty(product.id, qty + 1)}
+                      onClick={() => setQty(cartKey ?? String(product.id), qty + 1)}
                       aria-label={`Aumentar quantidade de ${product.name}`}
                     >
                       +
@@ -122,7 +128,7 @@ async function calcularFrete() {
                   <button
                     type="button"
                     className="cart__remove"
-                    onClick={() => removeItem(product.id)}
+                    onClick={() => removeItem(cartKey ?? String(product.id))}
                   >
                     Remover
                   </button>

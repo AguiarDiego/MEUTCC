@@ -13,6 +13,7 @@ import SobreNos from './pages/HomeCliente/SobreNos';
 import Cadastro from './pages/Login/Cadastro';
 import ContaUsuario from './pages/Conta/ContaUsuario';
 import MensagensContato from './components/MensagensContato.jsx';
+import TelaProduto from './pages/Produto/TelaProduto.jsx';
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/cadastro" element={<Cadastro />} />
         <Route path="/contausuario" element={<ContaUsuario />} />
         <Route path="/mensagenscontato" element={<MensagensContato />} />
+        <Route path="/produto/:id" element={<TelaProduto />} />
       </Routes>
       <Footer />
     </CartProvider>
