@@ -10,12 +10,44 @@ export default function Contato() {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  function handleSubmit(e) {
-    e.preventDefault();
+  
+async function handleSubmit(e) {
+  e.preventDefault();
+  setSent(false);
+
+  try {
+    const resposta = await fetch(
+      'http://localhost:8080/contato/mensagens',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(form),
+      }
+    );
+
+    if (!resposta.ok) {
+      throw new Error('Não foi possível enviar a mensagem.');
+    }
+
     setSent(true);
-    setForm({ nome: '', email: '', telefone: '', mensagem: '' });
+    setForm({
+      nome: '',
+      email: '',
+      telefone: '',
+      mensagem: '',
+    });
+
     setTimeout(() => setSent(false), 4000);
+  } catch (erro) {
+    alert(
+      'Não foi possível enviar sua mensagem. Tente novamente.'
+    );
+    console.error(erro);
   }
+}
+
 
   return (
     <div className="container my-5">

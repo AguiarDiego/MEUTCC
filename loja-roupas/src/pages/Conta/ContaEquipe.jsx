@@ -49,37 +49,40 @@ const membrosEquipe = {
 };
 
 export default function ContaEquipe() {
-
   /*
- * Guarda as categorias recebidas do backend.
- * Inicialmente, a lista fica vazia até a API responder.
- */
-const [categorias, setCategorias] = useState([])
+   * Guarda as categorias recebidas do backend.
+   */
+  const [categorias, setCategorias] = useState([]);
 
-const [produtos, setProdutos] = useState([]);
-const [carregando, setCarregando] = useState(true);
-const [erro, setErro] = useState('');
-const navigate = useNavigate();
-const emailEquipe = localStorage.getItem('emailEquipe');
-const equipe = membrosEquipe[emailEquipe];
+  const [produtos, setProdutos] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState('');
 
-useEffect(() => {
-  if (
-    localStorage.getItem('equipeLogada') !== 'true' ||
-    !equipe
-  ) {
-    navigate('/loginequipe', { replace: true });
-  }
-}, [navigate, equipe]);
+  // Estados das mensagens de contato.
+  const [mensagens, setMensagens] = useState([]);
+  const [carregandoMensagens, setCarregandoMensagens] = useState(true);
+  const [erroMensagens, setErroMensagens] = useState('');
 
-// Controla se o formulário de cadastro está visível.
-const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const navigate = useNavigate();
+  const emailEquipe = localStorage.getItem('emailEquipe');
+  const equipe = membrosEquipe[emailEquipe];
 
-// Guarda o ID do produto que estamos editando.
-// null significa que estamos cadastrando um produto novo.
-const [produtoEditandoId, setProdutoEditandoId] = useState(null);
+  useEffect(() => {
+    if (
+      localStorage.getItem('equipeLogada') !== 'true' ||
+      !equipe
+    ) {
+      navigate('/loginequipe', { replace: true });
+    }
+  }, [navigate, equipe]);
 
-  // Guarda os valores digitados no formulário de cadastro.
+  // Controla se o formulário de cadastro está visível.
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+
+  // Guarda o ID do produto que estamos editando.
+  const [produtoEditandoId, setProdutoEditandoId] = useState(null);
+
+  // Guarda os valores digitados no formulário.
   const [novoProduto, setNovoProduto] = useState({
     nome: '',
     descricao: '',
@@ -101,10 +104,6 @@ const [produtoEditandoId, setProdutoEditandoId] = useState(null);
     }));
   }
 
-
- // Busca os produtos reais quando a tela é aberta.
-  
-  
   // Primeiro: carrega os produtos.
   useEffect(() => {
     async function carregarProdutos() {
@@ -152,95 +151,115 @@ const [produtoEditandoId, setProdutoEditandoId] = useState(null);
     carregarCategorias();
   }, []);
 
-  
-function sair() {
-  localStorage.removeItem('equipeLogada');
-  localStorage.removeItem('emailEquipe');
+  // Carrega as mensagens enviadas pela página de contato.
+  useEffect(() => {
+    async function carregarMensagens() {
+      try {
+        const resposta = await fetch(
+          'http://localhost:8080/contato/mensagens'
+        );
 
-  window.dispatchEvent(new Event('equipeLogadaAtualizada'));
+        if (!resposta.ok) {
+          throw new Error('Não foi possível carregar as mensagens.');
+        }
 
-  navigate('/login', { replace: true });
-}
+        const dados = await resposta.json();
+        setMensagens(dados);
+      } catch (erro) {
+        console.error('Erro ao carregar mensagens:', erro);
+        setErroMensagens('Não foi possível carregar as mensagens.');
+      } finally {
+        setCarregandoMensagens(false);
+      }
+    }
 
+    carregarMensagens();
+  }, []);
 
+  // Encerra a sessão da equipe.
+  function sair() {
+    localStorage.removeItem('equipeLogada');
+    localStorage.removeItem('emailEquipe');
 
-  async function excluirProduto(id) {
-// Pede confirmação antes de excluir.
-const confirmar = window.confirm(
-'Tem certeza que deseja excluir este produto?'
-);
+    window.dispatchEvent(new Event('equipeLogadaAtualizada'));
 
-if (!confirmar) return;
-
-try {
-    // Envia o pedido de exclusão para o backend.
-    await excluirProdutoAPI(id);
-
-    // Atualiza a tela somente se a API confirmar sucesso.
-    setProdutos((prev) =>
-        prev.filter((produto) => produto.id !== id)
-    );
-
-    alert('Produto excluído com sucesso!');
-} catch (erro) {
-    console.error('Erro ao excluir produto:', erro);
-    alert('Não foi possível excluir o produto.');
-}
-
-}
-
- 
-function editarProduto(id) {
-  // Localiza na lista o produto que o usuário escolheu editar.
-  const produto = produtos.find((item) => item.id === id);
-
-  // Interrompe a operação caso o produto não seja encontrado.
-  if (!produto) {
-    alert('Produto não encontrado.');
-    return;
+    navigate('/login', { replace: true });
   }
 
-  // Guarda o ID para sabermos que estamos editando, e não cadastrando.
-  setProdutoEditandoId(id);
+  // Exclui um produto.
+  async function excluirProduto(id) {
+    const confirmar = window.confirm(
+      'Tem certeza que deseja excluir este produto?'
+    );
 
-  // Preenche o formulário com os dados atuais do produto.
-  setNovoProduto({
-    nome: produto.nome ?? produto.name ?? '',
-    descricao: produto.descricao ?? '',
-    preco: String(produto.preco ?? produto.price ?? ''),
-    tamanho: produto.tamanho ?? '',
-    cor: produto.cor ?? '',
-    categoria: produto.categoria?.id
-      ? String(produto.categoria.id)
-      : '',
-    estoque: String(produto.estoque ?? ''),
-    imagem: null, // Só envia uma imagem se o usuário escolher outra.
-  });
+    if (!confirmar) return;
 
-  // Torna o formulário visível.
-  setMostrarFormulario(true);
-}
-  
+    try {
+      await excluirProdutoAPI(id);
 
-  // Abre o formulário de cadastro de produtos.
-  function adicionarItem() {
+      setProdutos((prev) =>
+        prev.filter((produto) => produto.id !== id)
+      );
+
+      alert('Produto excluído com sucesso!');
+    } catch (erro) {
+      console.error('Erro ao excluir produto:', erro);
+      alert('Não foi possível excluir o produto.');
+    }
+  }
+
+  // Prepara o formulário para editar um produto.
+  function editarProduto(id) {
+    const produto = produtos.find((item) => item.id === id);
+
+    if (!produto) {
+      alert('Produto não encontrado.');
+      return;
+    }
+
+    setProdutoEditandoId(id);
+
+    setNovoProduto({
+      nome: produto.nome ?? produto.name ?? '',
+      descricao: produto.descricao ?? '',
+      preco: String(produto.preco ?? produto.price ?? ''),
+      tamanho: produto.tamanho ?? '',
+      cor: produto.cor ?? '',
+      categoria: produto.categoria?.id
+        ? String(produto.categoria.id)
+        : '',
+      estoque: String(produto.estoque ?? ''),
+      imagem: null,
+    });
+
     setMostrarFormulario(true);
   }
 
+  // Abre o formulário para cadastrar um produto.
+  function adicionarItem() {
+    setProdutoEditandoId(null);
 
-  
-  // Envia os dados do formulário para o backend.
-  
+    setNovoProduto({
+      nome: '',
+      descricao: '',
+      preco: '',
+      tamanho: '',
+      cor: '',
+      categoria: '',
+      estoque: '',
+      imagem: null,
+    });
+
+    setMostrarFormulario(true);
+  }
+
   // Envia os dados do formulário para o backend.
   async function salvarProduto(evento) {
-    // Impede que o navegador recarregue a página.
     evento.preventDefault();
 
-    // Identifica se vamos editar ou cadastrar um produto.
     const estavaEditando = produtoEditandoId !== null;
 
     try {
-      // Prepara os dados no formato esperado pelo Spring Boot.
       const produto = {
         nome: novoProduto.nome,
         descricao: novoProduto.descricao,
@@ -256,16 +275,14 @@ function editarProduto(id) {
       let idProdutoSalvo;
 
       if (estavaEditando) {
-        // Atualiza o produto existente usando o ID.
         await atualizarProduto(produtoEditandoId, produto);
         idProdutoSalvo = produtoEditandoId;
       } else {
-        // Cadastra um produto novo.
         const produtoCadastrado = await cadastrarProduto(produto);
         idProdutoSalvo = produtoCadastrado.id;
       }
 
-      // Envia uma imagem se o usuário tiver selecionado um arquivo.
+      // Envia a imagem, se uma nova imagem tiver sido selecionada.
       if (novoProduto.imagem) {
         await enviarImagemProduto(
           idProdutoSalvo,
@@ -273,7 +290,7 @@ function editarProduto(id) {
         );
       }
 
-      // Busca novamente os produtos atualizados na API.
+      // Atualiza a lista de produtos.
       const dados = await listarProdutos();
 
       const produtosFormatados = dados.map((item) => {
@@ -289,10 +306,9 @@ function editarProduto(id) {
         };
       });
 
-      // Atualiza a lista exibida na tela.
       setProdutos(produtosFormatados);
 
-      // Limpa os campos após concluir a operação.
+      // Limpa o formulário.
       setNovoProduto({
         nome: '',
         descricao: '',
@@ -304,11 +320,9 @@ function editarProduto(id) {
         imagem: null,
       });
 
-      // Sai do modo de edição e fecha o formulário.
       setProdutoEditandoId(null);
       setMostrarFormulario(false);
 
-      // Mostra uma mensagem de acordo com a operação realizada.
       alert(
         estavaEditando
           ? 'Produto atualizado com sucesso!'
@@ -326,12 +340,12 @@ function editarProduto(id) {
   }
 
   if (
-  localStorage.getItem('equipeLogada') !== 'true' ||
-  !equipe
-) {
-  return null;
-}
-   
+    localStorage.getItem('equipeLogada') !== 'true' ||
+    !equipe
+  ) {
+    return null;
+  }
+
   return (
     <div className="container my-5">
       <p className="text-center text-muted mb-2">
@@ -345,25 +359,51 @@ function editarProduto(id) {
       <h2 className="text-center mb-5">Minha conta - Equipe</h2>
 
       <div className="row">
-        {/* Coluna esquerda: atalho para a página de pedidos + dados do responsável */}
+        {/* Coluna esquerda: pedidos, mensagens e dados da equipe */}
         <div className="col-md-4 border-end mb-5 mb-md-0">
           <h4 className="mb-4">Pedidos</h4>
+
           <p className="text-muted small">
             Acompanhe pagamentos, prepare pedidos e confirme os envios.
           </p>
 
           <Link
             to="/gerenciarpedidos"
-            className="btn-buy d-inline-block text-center text-decoration-none mb-5"
+            className="btn-buy d-inline-block text-center text-decoration-none mb-4"
             style={{ padding: '10px 24px' }}
           >
             <i className="bi bi-box-seam me-2"></i>
             Gerenciar pedidos
           </Link>
 
-          <div className="d-flex justify-content-between align-items-start mb-2">
-            <h6 className="fw-bold mb-2">Dados Pessoais</h6>
-          </div>
+          <hr className="my-4" />
+
+          {/* Mensagens de contato na coluna esquerda */}
+          <section aria-labelledby="mensagens-contato">
+            <h4 id="mensagens-contato" className="mb-4">
+              Mensagens de contato
+            </h4>
+
+            <p className="text-muted small">
+            Veja as mensagens enviadas por usuários na aba Contato.
+          </p>
+
+            <Link
+            to="/mensagenscontato"
+            className="btn-buy d-inline-block text-center text-decoration-none mb-4"
+            style={{ padding: '10px 24px' }}
+          >
+            <i className="bi bi-envelope me-2"></i>
+            Mensagens de contato
+          </Link>
+          
+          </section>
+
+          <hr className="my-4" />
+
+          {/* Dados pessoais da equipe */}
+          <h6 className="fw-bold mb-2">Dados Pessoais</h6>
+
           <p className="mb-4 small">
             <strong>Nome: </strong>{equipe.nome}
             <br />
@@ -372,34 +412,45 @@ function editarProduto(id) {
             <strong>RM: </strong>{equipe.rm}
           </p>
 
-          <button type="button" onClick={sair} className="btn btn-dark px-4">
+          <button
+            type="button"
+            onClick={sair}
+            className="btn btn-dark px-4"
+          >
             Sair
           </button>
         </div>
 
-        {/* Coluna direita: editar itens da loja */}
+        {/* Coluna direita: edição e cadastro de produtos */}
         <div className="col-md-8 ps-md-4">
           <h4 className="mb-4">Editar itens da loja</h4>
 
-        {/* Mostra enquanto a API busca os produtos */}
-        {carregando && <p>Carregando produtos...</p>}
+          {carregando && <p>Carregando produtos...</p>}
 
-        {/* Mostra se acontecer algum erro */}
-        {erro && <p className="text-danger">{erro}</p>}
+          {erro && <p className="text-danger">{erro}</p>}
 
-        {/* Mostra os produtos carregados */}
-        <div className="row g-3">
-        {produtos.map((produto) => (
+          {/* Lista de produtos */}
+          <div className="row g-3">
+            {produtos.map((produto) => (
               <div className="col-6 col-lg-4" key={produto.id}>
                 <div className="text-center">
                   <img
                     src={produto.image}
                     alt={produto.name}
                     className="img-fluid mb-2"
-                    style={{ maxHeight: '140px', objectFit: 'contain' }}
+                    style={{
+                      maxHeight: '140px',
+                      objectFit: 'contain',
+                    }}
                   />
-                  <p className="small fw-medium mb-1">{produto.name}</p>
-                  <p className="small mb-2">R${produto.price}</p>
+
+                  <p className="small fw-medium mb-1">
+                    {produto.name}
+                  </p>
+
+                  <p className="small mb-2">
+                    R${produto.price}
+                  </p>
 
                   <button
                     type="button"
@@ -413,7 +464,10 @@ function editarProduto(id) {
                   <button
                     type="button"
                     className="btn btn-link p-0 small"
-                    style={{ color: 'var(--badge-color)', textDecoration: 'underline' }}
+                    style={{
+                      color: 'var(--badge-color)',
+                      textDecoration: 'underline',
+                    }}
                     onClick={() => excluirProduto(produto.id)}
                   >
                     Excluir
@@ -423,6 +477,7 @@ function editarProduto(id) {
             ))}
           </div>
 
+          {/* Botão para adicionar produto */}
           <div className="text-center mt-4">
             <button
               type="button"
@@ -438,130 +493,152 @@ function editarProduto(id) {
             >
               +
             </button>
-            <span className="small fw-medium" style={{ color: 'var(--badge-color)' }}>
+
+            <span
+              className="small fw-medium"
+              style={{ color: 'var(--badge-color)' }}
+            >
               Adicionar
             </span>
           </div>
 
-           {/* Formulário de cadastro de produto */}
+          {/* Formulário de cadastro e edição */}
           {mostrarFormulario && (
-           <div className="card p-4 mt-4">
-             <h5 className="mb-3">
-            {produtoEditandoId !== null
-            ? 'Editar produto'
-            : 'Cadastrar novo produto'}
-            </h5>
+            <div className="card p-4 mt-4">
+              <h5 className="mb-3">
+                {produtoEditandoId !== null
+                  ? 'Editar produto'
+                  : 'Cadastrar novo produto'}
+              </h5>
 
-                <form onSubmit={salvarProduto}>
-            {/* Nome que aparecerá na loja */}
-                    <div className="mb-3">
-            <label className="form-label">Nome do produto</label>
-              <input
-                  className="form-control"
-                  type="text"
-                  name="nome"
-                  value={novoProduto.nome}
-                  onChange={alterarCampo}
-                  required
-              />
+              <form onSubmit={salvarProduto}>
+                {/* Nome do produto */}
+                <div className="mb-3">
+                  <label className="form-label">
+                    Nome do produto
+                  </label>
+
+                  <input
+                    className="form-control"
+                    type="text"
+                    name="nome"
+                    value={novoProduto.nome}
+                    onChange={alterarCampo}
+                    required
+                  />
                 </div>
 
-                {/* Seleciona a imagem do produto no computador. */}
-         <div className="mb-3">
-         <label className="form-label">Imagem do produto</label>
+                {/* Imagem do produto */}
+                <div className="mb-3">
+                  <label className="form-label">
+                    Imagem do produto
+                  </label>
 
-         <input
-        className="form-control"
-        type="file"
-        name="imagem"
-        accept="image/*"
-        onChange={(evento) => {
-            const arquivo = evento.target.files?.[0] || null;
+                  <input
+                    className="form-control"
+                    type="file"
+                    name="imagem"
+                    accept="image/*"
+                    onChange={(evento) => {
+                      const arquivo =
+                        evento.target.files?.[0] || null;
 
-            setNovoProduto((anterior) => ({
-                ...anterior,
-                imagem: arquivo,
-            }));
-             }}
-            />
-          </div>
+                      setNovoProduto((anterior) => ({
+                        ...anterior,
+                        imagem: arquivo,
+                      }));
+                    }}
+                  />
+                </div>
 
-                {/* Descrição do produto */}
-                  <div className="mb-3">
-                    <label className="form-label">Descrição</label>
-                    <textarea
-                      className="form-control"
-                      name="descricao"
-                      value={novoProduto.descricao}
-                      onChange={alterarCampo}
-                      required
+                {/* Descrição */}
+                <div className="mb-3">
+                  <label className="form-label">Descrição</label>
 
-                    />
-                  </div>
+                  <textarea
+                    className="form-control"
+                    name="descricao"
+                    value={novoProduto.descricao}
+                    onChange={alterarCampo}
+                    required
+                  />
+                </div>
 
-                   {/* Preço de venda */}
-                   <div className="mb-3">
-                    <label className="form-label">Preço (R$)</label>
-                    <input
-                        className="form-control"
-                        type="number"
-                        name="preco"
-                        min="0"
-                        step="0.01"
-                        value={novoProduto.preco}
-                        onChange={alterarCampo}
-                        required
-                      />
-                      </div>
+                {/* Preço */}
+                <div className="mb-3">
+                  <label className="form-label">Preço (R$)</label>
 
-                    {/* Tamanho da roupa */}
-                    <div className="mb-3">
-                      <label className="form-label">Tamanho</label>
-                      <input
-                      className="form-control"
-                      type="text"
-                      name="tamanho"
-                      value={novoProduto.tamanho}
-                      onChange={alterarCampo}
-                      required
+                  <input
+                    className="form-control"
+                    type="number"
+                    name="preco"
+                    min="0"
+                    step="0.01"
+                    value={novoProduto.preco}
+                    onChange={alterarCampo}
+                    required
+                  />
+                </div>
 
-                    />
-                    </div>
+                {/* Tamanho */}
+                <div className="mb-3">
+                  <label className="form-label">Tamanho</label>
 
-                    {/* Cor da roupa */}
-            <div className="mb-3">
-                <label className="form-label">Cor</label>
-                <input
+                  <input
+                    className="form-control"
+                    type="text"
+                    name="tamanho"
+                    value={novoProduto.tamanho}
+                    onChange={alterarCampo}
+                    required
+                  />
+                </div>
+
+                {/* Cor */}
+                <div className="mb-3">
+                  <label className="form-label">Cor</label>
+
+                  <input
                     className="form-control"
                     type="text"
                     name="cor"
                     value={novoProduto.cor}
                     onChange={alterarCampo}
                     required
-                />
-            </div>
+                  />
+                </div>
 
-               {/* Mostra as categorias que vieram do banco de dados. */}
-          <select
-                 name="categoria"
-                 value={novoProduto.categoria}
-                 onChange={alterarCampo}
-                required
-          >
-    <option value="">Selecione uma categoria</option>
+                {/* Categoria */}
+                <div className="mb-3">
+                  <label className="form-label">Categoria</label>
 
-          {categorias.map((categoria) => (
-        <option key={categoria.id} value={categoria.id}>
-            {categoria.nome}
-        </option>
-        ))}
-        </select>
+                  <select
+                    className="form-select"
+                    name="categoria"
+                    value={novoProduto.categoria}
+                    onChange={alterarCampo}
+                    required
+                  >
+                    <option value="">
+                      Selecione uma categoria
+                    </option>
 
+                    {categorias.map((categoria) => (
+                      <option
+                        key={categoria.id}
+                        value={categoria.id}
+                      >
+                        {categoria.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            {/* Quantidade disponível em estoque */}
-            <div className="mb-3">
-                <label className="form-label">Estoque</label>
-                <input
+                {/* Estoque */}
+                <div className="mb-3">
+                  <label className="form-label">Estoque</label>
+
+                  <input
                     className="form-control"
                     type="number"
                     name="estoque"
@@ -570,37 +647,26 @@ function editarProduto(id) {
                     value={novoProduto.estoque}
                     onChange={alterarCampo}
                     required
-                />
+                  />
+                </div>
+
+                <button type="submit" className="btn-buy me-2">
+                  Salvar produto
+                </button>
+
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setMostrarFormulario(false);
+                    setProdutoEditandoId(null);
+                  }}
+                >
+                  Cancelar
+                </button>
+              </form>
             </div>
-
-                <button
-                type="submit"
-                className="btn-buy me-2"
-            >
-                Salvar produto
-            </button>
-
-
-
-                <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => setMostrarFormulario(false)}
-            >
-                Cancelar
-            </button>
-               </form>
-               
-
-               <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => setMostrarFormulario(false)}
-           >
-            Fechar formulário
-         </button>
-          </div>
-        )}
+          )}
         </div>
       </div>
     </div>

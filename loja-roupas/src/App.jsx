@@ -11,7 +11,8 @@ import ContaEquipe from './pages/Conta/ContaEquipe';
 import GerenciarPedidos from './pages/Conta/GerenciarPedidos';
 import SobreNos from './pages/HomeCliente/SobreNos';
 import Cadastro from './pages/Login/Cadastro';
-import ContaUsuario from './pages/Conta/ContaUsuario'
+import ContaUsuario from './pages/Conta/ContaUsuario';
+import MensagensContato from './components/MensagensContato.jsx';
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="/sobrenos" element={<SobreNos />} />
         <Route path="/cadastro" element={<Cadastro />} />
         <Route path="/contausuario" element={<ContaUsuario />} />
+        <Route path="/mensagenscontato" element={<MensagensContato />} />
       </Routes>
       <Footer />
     </CartProvider>
