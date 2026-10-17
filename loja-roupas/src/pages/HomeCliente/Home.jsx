@@ -17,7 +17,13 @@ export default function Home() {
 
     async function carregarProdutos() {
       try {
-        const produtosDoBanco = await listarProdutos();
+       const produtosDoBanco = await listarProdutos();
+
+        if (produtosDoBanco.length === 0) {
+          setProducts(staticProducts);
+          setErro(false);
+        return;
+        }
 
         if (!Array.isArray(produtosDoBanco)) {
           throw new Error('A resposta da API não é uma lista de produtos.');
@@ -88,12 +94,13 @@ export default function Home() {
           setErro(false);
         }
       } catch (erroCarregamento) {
-        console.error('Erro ao carregar produtos:', erroCarregamento);
+  console.error('Erro ao carregar produtos:', erroCarregamento);
 
-        if (ativo) {
-          setErro(true);
-        }
-      }
+  if (ativo) {
+    setProducts(staticProducts);
+    setErro(false);
+  }
+}
     }
 
     carregarProdutos();

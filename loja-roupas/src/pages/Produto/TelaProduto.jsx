@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { buscarProdutoPorId } from '../../service/produtoService.js';
+import { staticProducts, parsePrice } from '../../data/products.js';
 
 const IMAGENS_URL = 'http://localhost:8080/imagens';
 const TAMANHOS = ['P', 'M', 'G', 'GG'];
@@ -25,10 +26,15 @@ function obterUrlImagem(imagem) {
 
   if (!caminho) return '';
 
-  return caminho.startsWith('http://') ||
-    caminho.startsWith('https://')
-    ? caminho
-    : `${IMAGENS_URL}/${caminho.replace(/^\/+/, '')}`;
+  if (
+    caminho.startsWith('http://') ||
+    caminho.startsWith('https://') ||
+    caminho.startsWith('/Imagem/')
+  ) {
+    return caminho;
+  }
+
+  return `${IMAGENS_URL}/${caminho.replace(/^\/+/, '')}`;
 }
 
 export default function TelaProduto() {
@@ -63,11 +69,30 @@ export default function TelaProduto() {
       setFrete(null);
 
       try {
-        const dados = await buscarProdutoPorId(id);
+        let dados;
 
-        if (!dados || dados.id == null) {
-          throw new Error('Produto não encontrado.');
-        }
+const produtoStatico = staticProducts.find(
+  (produto) => String(produto.id) === String(id)
+);
+
+if (produtoStatico) {
+  const preco = parsePrice(produtoStatico.price);
+
+  dados = {
+    id: produtoStatico.id,
+    nome: produtoStatico.name,
+    preco,
+    tamanho: 'M',
+    estoque: 10,
+    imagem: produtoStatico.image,
+    imagens: produtoStatico.images?.length
+      ? produtoStatico.images
+      : [produtoStatico.image],
+    produtoEstatico: true,
+  };
+} else {
+  dados = await buscarProdutoPorId(id);
+}
 
         if (controller.signal.aborted) return;
 
