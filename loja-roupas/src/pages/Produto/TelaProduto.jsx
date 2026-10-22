@@ -71,28 +71,43 @@ export default function TelaProduto() {
       try {
         let dados;
 
-const produtoStatico = staticProducts.find(
-  (produto) => String(produto.id) === String(id)
-);
+        // Primeiro, busca o produto pelo ID no banco de dados.
+        try {
+          dados = await buscarProdutoPorId(id);
+        } catch (erroBusca) {
+          // Se o produto não existe no banco, não usa um produto
+          // estático com o mesmo ID, pois pode ser outro produto.
+          if (
+            erroBusca.message === 'Produto não encontrado.'
+          ) {
+            throw erroBusca;
+          }
 
-if (produtoStatico) {
-  const preco = parsePrice(produtoStatico.price);
+          // Fallback para produtos estáticos quando a API
+          // não estiver disponível.
+          const produtoStatico = staticProducts.find(
+            (produto) => String(produto.id) === String(id)
+          );
 
-  dados = {
-    id: produtoStatico.id,
-    nome: produtoStatico.name,
-    preco,
-    tamanho: 'M',
-    estoque: 10,
-    imagem: produtoStatico.image,
-    imagens: produtoStatico.images?.length
-      ? produtoStatico.images
-      : [produtoStatico.image],
-    produtoEstatico: true,
-  };
-} else {
-  dados = await buscarProdutoPorId(id);
-}
+          if (!produtoStatico) {
+            throw erroBusca;
+          }
+
+          const preco = parsePrice(produtoStatico.price);
+
+          dados = {
+            id: produtoStatico.id,
+            nome: produtoStatico.name,
+            preco,
+            tamanho: 'M',
+            estoque: 10,
+            imagem: produtoStatico.image,
+            imagens: produtoStatico.images?.length
+              ? produtoStatico.images
+              : [produtoStatico.image],
+            produtoEstatico: true,
+          };
+        }
 
         if (controller.signal.aborted) return;
 
@@ -104,7 +119,8 @@ if (produtoStatico) {
 
         const listaImagens = Array.isArray(dados.imagens)
           ? [...dados.imagens].sort(
-              (a, b) => (Number(a?.id) || 0) - (Number(b?.id) || 0)
+              (a, b) =>
+                (Number(a?.id) || 0) - (Number(b?.id) || 0)
             )
           : [];
 

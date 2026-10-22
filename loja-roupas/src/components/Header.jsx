@@ -1,10 +1,35 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
 export default function Header() {
   const { totalCount } = useCart();
+  const location = useLocation();
+const navigate = useNavigate();
+const [searchParams] = useSearchParams();
+const [pesquisa, setPesquisa] = useState(
+  searchParams.get('busca') || ''
+);
+
+useEffect(() => {
+  setPesquisa(searchParams.get('busca') || '');
+}, [searchParams]);
+
+function pesquisarProdutos(e) {
+  e.preventDefault();
+
+  const termo = pesquisa.trim();
+
+  navigate(
+    termo ? `/?busca=${encodeURIComponent(termo)}` : '/'
+  );
+}
   const [clienteLogado, setClienteLogado] = useState(null);
   const [equipeLogada, setEquipeLogada] = useState(false);
 
@@ -46,6 +71,33 @@ export default function Header() {
         style={{ backgroundColor: '#000', height: '70px' }}
       >
         <div className="container position-relative d-flex justify-content-center">
+          {location.pathname === '/' && (
+  <form
+    onSubmit={pesquisarProdutos}
+    className="position-absolute start-0 top-50 translate-middle-y d-none d-md-flex"
+    role="search"
+    style={{ width: '250px', zIndex: 2 }}
+  >
+    <div className="input-group">
+      <input
+        type="search"
+        className="form-control"
+        placeholder="Pesquisar produtos..."
+        aria-label="Pesquisar produtos"
+        value={pesquisa}
+        onChange={(e) => setPesquisa(e.target.value)}
+      />
+
+      <button
+        type="submit"
+        className="btn btn-outline-light"
+        aria-label="Buscar"
+      >
+        <i className="bi bi-search"></i>
+      </button>
+    </div>
+  </form>
+)}
           <Link
             to="/"
             className="navbar-brand position-absolute start-50"

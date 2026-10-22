@@ -1,41 +1,67 @@
 
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { staticProducts } from '../../data/products.js';
 import { listarProdutos } from '../../service/produtoService.js';
 import { useCart } from '../../context/CartContext';
 
 export default function Home() {
+  const [searchParams] = useSearchParams();
+
+  const pesquisa = (searchParams.get('busca') || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+
   const [products, setProducts] = useState([]);
   const [erro, setErro] = useState(false);
   const [justAdded, setJustAdded] = useState('');
 
   const { addItem } = useCart();
 
+  const produtosFiltrados = products.filter((product) => {
+    const nome = String(product.name || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+
+    return nome.includes(pesquisa);
+  });
+
   useEffect(() => {
     let ativo = true;
 
     async function carregarProdutos() {
       try {
-       const produtosDoBanco = await listarProdutos();
-
-        if (produtosDoBanco.length === 0) {
-          setProducts(staticProducts);
-          setErro(false);
-        return;
-        }
+        const produtosDoBanco = await listarProdutos();
 
         if (!Array.isArray(produtosDoBanco)) {
-          throw new Error('A resposta da API não é uma lista de produtos.');
+          throw new Error(
+            'A resposta da API não é uma lista de produtos.'
+          );
+        }
+
+        if (produtosDoBanco.length === 0) {
+          if (ativo) {
+            setProducts(staticProducts);
+            setErro(false);
+          }
+          return;
         }
 
         const produtosFormatados = produtosDoBanco.map((produto) => {
+          console.table(
+  produtosDoBanco.map((p) => ({
+    id: p.id,
+    nome: p.nome,
+  }))
+);
           const produtoVisual = staticProducts.find(
             (produtoStatico) =>
               String(produtoStatico.id) === String(produto.id)
           );
 
-          // Obtém as imagens do produto e ordena pelo ID.
           const imagensOrdenadas = [...(produto.imagens || [])].sort(
             (a, b) => a.id - b.id
           );
@@ -51,7 +77,10 @@ export default function Home() {
             ? nomeImagem.startsWith('http://') ||
               nomeImagem.startsWith('https://')
               ? nomeImagem
-              : `http://localhost:8080/imagens/${nomeImagem.replace(/^\/+/, '')}`
+              : `http://localhost:8080/imagens/${nomeImagem.replace(
+                  /^\/+/,
+                  ''
+                )}`
             : null;
 
           const precoNormal = Number(
@@ -72,19 +101,15 @@ export default function Home() {
             installment: (precoValido / 4)
               .toFixed(2)
               .replace('.', ','),
-
             image:
               imagemBackend ||
               produtoVisual?.image ||
               '/Imagem/placeholder.svg',
-
             descricao: produto.descricao,
             tamanho: produto.tamanho,
             cor: produto.cor,
             estoque: produto.estoque,
             categoria: produto.categoria,
-
-            // Mantém o preço numérico para operações do carrinho.
             precoNumerico: precoValido,
           };
         });
@@ -94,13 +119,16 @@ export default function Home() {
           setErro(false);
         }
       } catch (erroCarregamento) {
-  console.error('Erro ao carregar produtos:', erroCarregamento);
+        console.error(
+          'Erro ao carregar produtos:',
+          erroCarregamento
+        );
 
-  if (ativo) {
-    setProducts(staticProducts);
-    setErro(false);
-  }
-}
+        if (ativo) {
+          setProducts(staticProducts);
+          setErro(false);
+        }
+      }
     }
 
     carregarProdutos();
@@ -186,66 +214,84 @@ export default function Home() {
           </p>
         )}
 
-        <div className="row">
-          {products.map((product) => (
-            <div
-              className="col-md-4 my-4"
-              key={product.id}
-            >
-              <div className="card border-0 shadow-sm mb-4 h-100 product-card">
-                <Link to={`/produto/${product.id}`}>
-                  <img
-                    src={product.image}
-                    className="card-img-top"
-                    alt={product.name}
-                    style={{
-                      height: '340px',
-                      objectFit: 'cover',
-                    }}
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = '/Imagem/placeholder.svg';
-                    }}
-                  />
-                </Link>
+        {pesquisa &&
+          products.length > 0 &&
+          produtosFiltrados.length === 0 && (
+            <p className="text-muted text-center my-5">
+              Nenhum produto encontrado para "
+              {searchParams.get('busca')}".
+            </p>
+          )}
 
-                <div className="card-body text-center d-flex flex-column">
-                  <Link
-                    to={`/produto/${product.id}`}
-                    className="text-dark text-decoration-none"
-                  >
-                    <h5 className="card-title">
-                      {product.name}
-                    </h5>
+        <div className="row">
+          {produtosFiltrados.map((product) => {
+            console.log(
+              'Produto exibido:',
+              product.name,
+              '| ID:',
+              product.id
+            );
+
+            return (
+              <div
+                className="col-md-4 my-4"
+                key={product.id}
+              >
+                <div className="card border-0 shadow-sm mb-4 h-100 product-card">
+                  <Link to={`/produto/${product.id}`}>
+                    <img
+                      src={product.image}
+                      className="card-img-top"
+                      alt={product.name}
+                      style={{
+                        height: '340px',
+                        objectFit: 'cover',
+                      }}
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = '/Imagem/placeholder.svg';
+                      }}
+                    />
                   </Link>
 
-                  <p className="fw-bold mb-0">
-                    R${product.price}
-                  </p>
+                  <div className="card-body text-center d-flex flex-column">
+                    <Link
+                      to={`/produto/${product.id}`}
+                      className="text-dark text-decoration-none"
+                    >
+                      <h5 className="card-title">
+                        {product.name}
+                      </h5>
+                    </Link>
 
-                  <p
-                    className="mb-0"
-                    style={{ color: 'var(--accent-color)' }}
-                  >
-                    R${product.pricePix} com Pix
-                  </p>
+                    <p className="fw-bold mb-0">
+                      R${product.price}
+                    </p>
 
-                  <p className="mb-2">
-                    ou 4x de R${product.installment} sem juros
-                  </p>
+                    <p
+                      className="mb-0"
+                      style={{ color: 'var(--accent-color)' }}
+                    >
+                      R${product.pricePix} com Pix
+                    </p>
 
-                  <button
-                    type="button"
-                    className="btn btn-dark mt-auto w-100"
-                    onClick={() => handleAdd(product)}
-                  >
-                    Comprar{' '}
-                    <i className="bi bi-cart-plus"></i>
-                  </button>
+                    <p className="mb-2">
+                      ou 4x de R${product.installment} sem juros
+                    </p>
+
+                    <button
+                      type="button"
+                      className="btn btn-dark mt-auto w-100"
+                      onClick={() => handleAdd(product)}
+                    >
+                      Comprar{' '}
+                      <i className="bi bi-cart-plus"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
