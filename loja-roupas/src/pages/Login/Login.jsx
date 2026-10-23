@@ -22,7 +22,10 @@ export default function Login() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, senha }),
+        body: JSON.stringify({
+          email: email.trim(),
+          senha,
+        }),
       });
 
       if (!resposta.ok) {
@@ -33,13 +36,21 @@ export default function Login() {
 
       const cliente = await resposta.json();
 
+      if (cliente.id == null) {
+        setErro('Não foi possível identificar sua conta. Tente novamente.');
+        return;
+      }
+
       sessionStorage.setItem('clienteLogado', JSON.stringify(cliente));
+
       window.dispatchEvent(new Event('clienteLogadoAtualizado'));
 
       navigate('/contausuario');
     } catch (erro) {
       console.error(erro);
-      setErro('Não foi possível conectar ao servidor. Verifique se o back-end está rodando.');
+      setErro(
+        'Não foi possível conectar ao servidor. Verifique se o back-end está rodando.'
+      );
     } finally {
       setCarregando(false);
     }
@@ -58,6 +69,7 @@ export default function Login() {
           <label htmlFor="email" className="form-label">
             E-mail:
           </label>
+
           <input
             type="email"
             className="form-control"
@@ -73,6 +85,7 @@ export default function Login() {
           <label htmlFor="senha" className="form-label">
             Senha:
           </label>
+
           <div className="position-relative">
             <input
               type={showPassword ? 'text' : 'password'}
@@ -83,13 +96,18 @@ export default function Login() {
               onChange={(e) => setSenha(e.target.value)}
               required
             />
+
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
               className="btn position-absolute top-50 end-0 translate-middle-y me-2 p-0 border-0 bg-transparent"
               aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
             >
-              <i className={`bi ${showPassword ? 'bi-eye' : 'bi-eye-slash'}`}></i>
+              <i
+                className={`bi ${
+                  showPassword ? 'bi-eye' : 'bi-eye-slash'
+                }`}
+              ></i>
             </button>
           </div>
         </div>
@@ -116,6 +134,7 @@ export default function Login() {
               Criar uma conta
             </Link>
           </p>
+
           <p>
             Você faz parte da nossa equipe?{' '}
             <Link to="/loginequipe" className="fw-bold link-vinho">

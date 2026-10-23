@@ -223,9 +223,9 @@ async function calcularFrete() {
             </div>
           </div>
 
-          <button type="button" className="cart__checkout">
+          <Link to="/TelaCompra" className="cart__checkout">
             Finalizar compra
-          </button>
+          </Link>
           </aside>
         </div>
           </main>

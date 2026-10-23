@@ -14,6 +14,7 @@ import Cadastro from './pages/Login/Cadastro';
 import ContaUsuario from './pages/Conta/ContaUsuario';
 import MensagensContato from './components/MensagensContato.jsx';
 import TelaProduto from './pages/Produto/TelaProduto.jsx';
+import TelaCompra from './pages/Compra/TelaCompra';
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="/contausuario" element={<ContaUsuario />} />
         <Route path="/mensagenscontato" element={<MensagensContato />} />
         <Route path="/produto/:id" element={<TelaProduto />} />
+        <Route path="/telacompra" element={<TelaCompra />} />
       </Routes>
       <Footer />
     </CartProvider>

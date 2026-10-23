@@ -1,4 +1,4 @@
-export default function TrocasDevolucoes() {
+export default function SobreNos() {
   return (
     <div className="container my-5 px-5">
       <h2 className="text-center mb-5">Sobre nós</h2>
